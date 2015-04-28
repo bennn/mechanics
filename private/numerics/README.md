@@ -1,0 +1,4 @@
+numerics
+========
+
+TODO: document subfolders
