@@ -1,14 +1,16 @@
 #lang racket/base
 
-;; Continued Fractions
-;;
+;; Continued Fractions stream approximations of real numbers.
+;; http://en.wikipedia.org/wiki/Continued_fraction
 
 (provide
  ;; (-> Exact-Rational (Streamof Integer))
  ;; Create the continued fraction representation of an exact number.
  continued-fraction
  ;; (-> (Streamof Integer) (Streamof Exact-Rational))
- ;; Return a stream of approximations to a continued fraction.
+ ;; Return a stream of approximation to a continued fraction.
+ ;; The nth element of the output uses the first n terms of the
+ ;; continued fraction.
  convergents
 )
 
