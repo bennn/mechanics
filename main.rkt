@@ -57,11 +57,11 @@
 
 (require
  racket/contract/base
+ (only-in racket/math pi)
  (for-syntax
   racket/base
   syntax/parse
   (only-in unstable/sequence in-syntax)))
-(require (only-in racket/math pi))
 
 ;; =============================================================================
 
@@ -146,4 +146,3 @@
   (check-equal? (Pi (lambda (x) x) 2 1) 1)
   (check-equal? (Pi (lambda (x) 4) 0 4) (expt 4 5))
 )
-
