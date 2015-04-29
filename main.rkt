@@ -61,7 +61,6 @@
   racket/base
   syntax/parse
   (only-in unstable/sequence in-syntax)))
-
 (require (only-in racket/math pi))
 
 ;; =============================================================================
