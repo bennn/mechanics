@@ -1,6 +1,6 @@
 #lang racket/base
 
-;; TODO Racket anlog of make-rational
+;; TODO Racket analog of make-rational
 
 ;; Farey Trees (aka Stern-Brocot Trees)
 
@@ -23,7 +23,8 @@
  (only-in racket/math pi)
  (only-in racket/flonum flmax)
  (only-in math/base phi.0)
- (only-in racket/set for/set
+ (only-in racket/set set
+                     for/set
                      set->list
                      set-union)
  )
@@ -85,14 +86,16 @@
 ;; are better ways of computing the nth Farey sequence:
 (define (farey-sequence n)
   (define m (add1 n))
-  (define farey-sets
-    (for/list ([q (in-range 0 m)])
-      (for/set ([p (in-range 1 m)]
-                #:when (not (> p q)))
-        (/ p q))))
-  (define all-elems
-    (cons 0 (set->list (apply set-union farey-sets))))
-  (sort all-elems <))
+  (define (all-fractions-with-denom q)
+    (for/set ([p (in-range 1 m)]
+              #:when (not (> p q)))
+      (/ p q)))
+  (define farey-fractions
+    (for/fold ([s (set)])
+              ([q (in-range 0 m)])
+      (set-union s (all-fractions-with-denom q))))
+  ;; Prepend 0/0 to result; it's a member of any farey-sequence
+  (cons 0 (sort (set->list farey-fractions) <)))
 
 (define (lamothe-simplicity m/n)
   (/ 1 (* (numerator m/n) (denominator m/n))))
@@ -101,25 +104,28 @@
 ;; members of the nth Farey tree level from 0 to infinity is n-1
 
 (define (farey-encode m/n)
-  (let lp ([m (numerator m/n)]
-           [n (denominator m/n)])
+  (define (lp m n)
     (cond
-     [(= m n) '()]
+     [(= m n)
+      '()]
      [(< m n)
       (cons 'L (lp m (- n m)))]
      [else
-      (cons 'R (lp (- m n) n))])))
+      (cons 'R (lp (- m n) n))]))
+  (lp (numerator m/n) (denominator m/n)))
 
 (define (farey-encode-real x maxlevel)
-  (cond [(or (= x 1) (= maxlevel 0)) '()]
-        [(< x 1)
-         (cons 'L
-               (farey-encode-real (/ x (- 1 x))
-                                  (- maxlevel 1)))]
-        [else
-         (cons 'R
-               (farey-encode-real (- x 1)
-                                  (- maxlevel 1)))]))
+  (cond
+   [(or (= x 1) (= maxlevel 0))
+    '()]
+   [(< x 1)
+    (cons 'L
+          (farey-encode-real (/ x (- 1 x))
+                             (- maxlevel 1)))]
+   [else;(> x 1)
+    (cons 'R
+          (farey-encode-real (- x 1)
+                             (- maxlevel 1)))]))
 
 ;; (define (farey-decode L/R-list)
 ;;   (let lp ([lst L/R-list]
