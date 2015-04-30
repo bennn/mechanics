@@ -8,6 +8,7 @@
 ;; and 'main.rkt' will just be the library's API.
 
 (provide
+ ~?
  def
  ;replace 'provide' with a form that requires a doc and a contract
  ;macros for easy list access (to replace vector-ref, etc)
@@ -21,6 +22,10 @@
   syntax/parse))
 
 ;; =============================================================================
+
+;; Equal up to some epsilon
+(define (~? n1 n2 #:epsilon e)
+  (< (abs (- n1 n2)) e))
 
 ;; Sample macro, to make sure package install worked
 (define-syntax (def stx)
