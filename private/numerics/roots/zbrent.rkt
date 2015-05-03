@@ -62,7 +62,7 @@
          (loop (add1 iter) x1 fx1 new-x1 (f new-x1) x2 fx2 d e))
        (cond
          [(or (<= (abs xm) tol1) (= fx1 0.0))
-          (list #f x1 iter)]
+          (list #t x1 iter)]
          [(and (>= (abs e) tol1) (> (abs fx0) (abs fx1)))
           (define s (/ fx1 fx0))
           (if (= x0 x2)
@@ -82,52 +82,46 @@
 
   ;; Call zbrent, tracking the number of times `f` is invoked
   (define (zbrent+numcalls f x0 x1)
-    (define num-calls (box 0))
+    (define num-calls 0)
     (define (f* x)
-      (set-box! num-calls (add1 (unbox num-calls)))
+      (set! num-calls (add1 num-calls))
       (f x))
     (define res (zbrent f* x0 x1))
-    (cons (unbox num-calls) res))
+    (cons num-calls res))
 
   (check-equal?
     (zbrent+numcalls (lambda (x) (- (sin x) 0.5)) 0. 1.5)
-    (cons 10 (list #t .5235987755982988 8)))
+    (cons 21 (list #t .5235987755982988 19)))
+  (check-equal?
+    (zbrent (lambda (x) (- (sin x) 0.5)) 0. 1.5)
+    (list #t .5235987755982988 19))
 
   (check-equal?
     (zbrent+numcalls (lambda (x) (+ (* 2 x (exp (- 3))) 1 (* -2 (exp (* -1 3 x))))) 0. 1.)
-    (cons 9 (list #t .22370545765466293 7)))
+    (cons 22 (list #t .223705457654663 20)))
 
   (check-equal?
     (zbrent+numcalls (lambda (x) (- (* (add1 (expt (- 1 10) 2)) x) (expt (- 1 (* 10 x)) 2))) 0. 1.)
-    (cons 10 (list #t 9.900009998000501e-3 8)))
+    (cons 20 (list #t 9.9000099980005e-3 18)))
 
   (check-equal?
     (zbrent+numcalls (lambda (x) (- (square x) (expt (- 1 x) 5))) 0 1.)
-    (cons 9 (list #t .34595481584824217 7)))
+    (cons 21 (list #t .345954815848242 19)))
 
   (check-equal?
     (zbrent+numcalls (lambda (x) (+ (expt x 19) 1e-4)) -3. 5.)
-    (cons 25 (list #t -0.6158482110660264 23)))
+    (cons 31 (list #t -0.6158482110660264 29)))
 
   (check-equal?
     (zbrent+numcalls (lambda (x) (cube x)) -1. 10.)
-    (cons 100 (list #f #f 100)))
+    (cons 86 (list #t -8.096477227045762e-19 84)))
 
   (check-equal?
-    (zbrent (lambda (x) (cube x)) -1. 10. #:iters 200)
-    (list #t -1.4076287793739637e-16 158))
-
-  (check-equal?
-    (zbrent (lambda (x) (expt x 9)) -1. 10. #:iters 200)
-    (list #t -1.1555192900497495e-17))
+    (zbrent (lambda (x) (expt x 9)) -1. 10.)
+    (list #t -1.7948404394016643e-16 78))
 
   (check-equal?
     (zbrent (lambda (x) (expt x 19)) -1. 10. #:iters 200)
-    (list #t 1.4548841231758658e-16 152))
-
-  (define 2pi (* 8 (atan 1 1)))
-  (check-equal?
-    (zbrent (lambda (e) (- e (* .99 e)) .01) 0.0 2pi)
-    (cons #t .3422703164917755 13))
+    (list #t 3.4764349675327277e-16 80))
 
 )
