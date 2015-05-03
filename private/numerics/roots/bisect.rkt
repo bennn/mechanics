@@ -61,38 +61,38 @@
 (define (kepler ecc m)
   (bisect (lambda (e) (- e (* ecc (sin e)) m)) -.0 (* 2 pi) 1e-15 #:break 20))
 
-;; If we don't know anything, it is usually a good idea to 
-;;   break the interval into dx-sized pieces and look for 
-;;   roots in each interval.
-;; TODO test
-(define (find-a-root f x0 x1 dx eps continue failure)
-  (define (find x0 x1)
-    (cond
-      [(> (abs (- x0 x1)) dx)
-       (define f0 (f x0))
-       (define f1 (f x1))
-       (cond
-         [(< (* f0 f1) 0) (continue (bisect f x0 x1 eps))]
-         ; (define xm (/ (+ x0 x1) 2))
-         ; TODO what's the case for (find x0 xm) ?
-         [else            (find (/ (+ x0 x1) 2) x1)])]
-      [else failure]))
-  (find x0 x1))
-
-;; TODO test
-(define (search-for-roots f x0 x1 eps small)
-  (define (find-roots x0 x1)
-    (define f0 (f x0))
-    (define f1 (f x1))
-    (cond
-      [(~? x0 x1 #:epsilon small)
-       (if (< (* f0 f1) 0)
-         (list (bisect f x0 x1 eps))
-         '())]
-      [else
-       (define xm (/ (+ x0 x1) 2))
-       (append (find-roots x0 xm) (find-roots xm x1))]))
-  (find-roots x0 x1))
+;;; If we don't know anything, it is usually a good idea to 
+;;;   break the interval into dx-sized pieces and look for 
+;;;   roots in each interval.
+;;; TODO test
+;(define (find-a-root f x0 x1 dx eps continue failure)
+;  (define (find x0 x1)
+;    (cond
+;      [(> (abs (- x0 x1)) dx)
+;       (define f0 (f x0))
+;       (define f1 (f x1))
+;       (cond
+;         [(< (* f0 f1) 0) (continue (bisect f x0 x1 eps))]
+;         ; (define xm (/ (+ x0 x1) 2))
+;         ; TODO what's the case for (find x0 xm) ?
+;         [else            (find (/ (+ x0 x1) 2) x1)])]
+;      [else failure]))
+;  (find x0 x1))
+;
+;(define (search-for-roots f x0 x1 eps small)
+;  (define (find-roots x0 x1)
+;    (define f0 (f x0))
+;    (define f1 (f x1))
+;    (cond
+;      [(~? x0 x1 #:epsilon small)
+;       (printf "small\n")
+;       (if (< (* f0 f1) 0)
+;         (list (bisect f x0 x1 eps))
+;         '())]
+;      [else
+;       (define xm (/ (+ x0 x1) 2))
+;       (append (find-roots x0 xm) (find-roots xm x1))]))
+;  (find-roots x0 x1))
 
 (module+ test
   (require rackunit)
