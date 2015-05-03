@@ -1,6 +1,7 @@
 #lang racket/base
 
 (provide
+  ;; (->* ((-> Number Number) Number Number) (#:epsilon Number #:iters Number) (List Boolean Number Natural))
   ;; Finds roots of function `f` in domain from `x0` to `x1` provided
   ;;  `f(x0) X f(x1) <= 0`.
   ;; Optional arguments `#:epsilon` and `#:iters` set the tolerance for
@@ -12,6 +13,7 @@
   ;; The number of function evaluations is always
   ;;  two more than the number of iterations.
   ;; (From Numerical Recipes, 2nd Edition, Press et al.)
+  zbrent
 )
 
 ;; -----------------------------------------------------------------------------
