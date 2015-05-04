@@ -8,6 +8,9 @@
 ;; and 'main.rkt' will just be the library's API.
 
 (provide
+ average
+ square
+ cube
  ~?
  def
  ;replace 'provide' with a form that requires a doc and a contract
@@ -23,6 +26,16 @@
 
 ;; =============================================================================
 
+(define (square x)
+  (expt x 2))
+
+(define (cube x)
+  (expt x 3))
+
+(define (average . nums)
+  (define N (length nums))
+  (for/sum ([n nums]) (/ n N)))
+
 ;; Equal up to some epsilon
 (define (~? n1 n2 #:epsilon e)
   (< (abs (- n1 n2)) e))
@@ -33,3 +46,8 @@
     [(_ x:id e)
      (printf "MACRO WORKED\n")
      #'(define x e)]))
+
+(module+ test
+  (require rackunit)
+  (check-equal? (average 1 2 3) 2)
+)
