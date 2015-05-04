@@ -1,2 +1,7 @@
 compiled
 doc
+*\.swp
+*~
+\#*
+\.\#*
+
