@@ -53,6 +53,7 @@
     (quadratic a b c
       (lambda (r1 r2) `(two-roots ,r1 ,r2))
       (lambda (r1 r2) `(complex-roots ,r1 ,r2))
+      (lambda (r) `(double-root ,r))
       (lambda (r) `(linear ,r))
       (lambda (a b c) `(no-solution ,a ,b ,c))))
 
@@ -63,25 +64,25 @@
   (check-equal? (test-quadratic 2 -14 20)
                 '(two-roots 5 2))
 
-  ;(check-equal? (test-quadratic 0 1 2)
-  ;              '(linear -2))
+  (check-equal? (test-quadratic 0 1 2)
+                '(linear -2))
 
-  ;(check-equal? (test-quadratic 1 -2 1)
-  ;              '(double-root 1))
+  (check-equal? (test-quadratic 1 -2 1)
+               '(double-root 1))
 
-  ;(check-equal? (test-quadratic 0 0 0)
-  ;              '(no-solution 0 0 0))
+  (check-equal? (test-quadratic 0 0 0)
+               '(no-solution 0 0 0))
 
-  ;(check-equal? (test-quadratic 0 0 1)
-  ;              '(no-solution 0 0 1))
+  (check-equal? (test-quadratic 0 0 1)
+               '(no-solution 0 0 1))
 
-  ;(check-equal? (test-quadratic 0 1 0)
-  ;              '(linear 0))
+  (check-equal? (test-quadratic 0 1 0)
+               '(linear 0))
 
-  ;(check-equal? (test-quadratic 1 0 0)
-  ;              '(double-root 0))
+  (check-equal? (test-quadratic 1 0 0)
+               '(double-root 0))
 
-  ;(check-equal? (test-quadratic 2 10 100)
-  ;              '(complex-roots -5/2-6.614378277661476i
-  ;                              -2.5+6.614378277661476i))
+  (check-equal? (test-quadratic 2 10 100)
+               '(complex-roots -5/2-6.614378277661476i
+                               -2.5+6.614378277661477i))
   )
