@@ -3,18 +3,13 @@
 ;; From Hamming, roots of quadratic without bad roundoff.
 ;; a*x^2 + b*x + c = 0
 
-(provide
- )
+(provide quadratic)
 
 ;; -----------------------------------------------------------------------------
 
-(require
- )
+(require mechanics)
 
 ;; =============================================================================
-
-(define (sign->integer x)
-  (if (negative? x) -1 1))
 
 (define (quadratic a b c
                    ;; continuations for each case

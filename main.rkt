@@ -8,6 +8,7 @@
 ;; and 'main.rkt' will just be the library's API.
 
 (provide
+ sign->integer
  def
  ;replace 'provide' with a form that requires a doc and a contract
  ;macros for easy list access (to replace vector-ref, etc)
@@ -21,6 +22,9 @@
   syntax/parse))
 
 ;; =============================================================================
+
+(define (sign->integer x)
+  (if (negative? x) -1 1))
 
 ;; Sample macro, to make sure package install worked
 (define-syntax (def stx)
