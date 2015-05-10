@@ -2,18 +2,14 @@
 
 ;; This module defines the bessel functions of integer order
 
-(require racket/math)
-(require racket/fixnum)
+(require "../../../main.rkt")
 
-(define π pi)
-(define π/2 (/ π 2))
-(define π/3 (/ π 3))
-(define π/4 (/ π 4))
-(define π/6 (/ π 6))
-(define π/12 (/ π 12))
-(define 2/π (/ 2 π))
-(define 3π/4 (* 3 π/4))
-
+(require
+ (only-in racket/fixnum
+          fx+
+          fx=
+          fx<
+          fx-))
 
 ;; Utilities for special functions
 
