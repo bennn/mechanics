@@ -2,7 +2,24 @@
 
 ;; This module defines the bessel functions of integer order
 
-(require "../../../main.rkt")
+(provide
+ bessj₀
+ bessj₁
+ bessj
+ bessy₀
+ bessy₁
+ bessy
+ bessh₀
+ bessh₁
+ bessh)
+
+(require
+ (only-in "../../../main.rkt"
+          π
+          π/4
+          π/2
+          3π/4
+          2/π))
 
 (require
  (only-in racket/fixnum
@@ -10,6 +27,8 @@
           fx=
           fx<
           fx-))
+(require
+ (only-in math/number-theory factorial))
 
 ;; Utilities for special functions
 
@@ -199,13 +218,8 @@
                       (set! ans bjp))
                     (lp (fx- j 1)))))))))]))
 
-(define (fact n)
-  (if (< n 2)
-      1
-      (* n (fact (- n 1)))))
-
 (define (bessj:0<x<<n n x)
-  (/ (expt (/ x 2) n) (fact n)))
+  (/ (expt (/ x 2) n) (factorial n)))
 
 (define (bessj:n<<x n x)
   (* (sqrt (/ 2 π x))

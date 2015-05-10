@@ -1,7 +1,21 @@
 #lang racket/base
 
-(require racket/flonum)
-(require racket/math)
+(provide
+ first-elliptic-integral
+ elliptic-integrals
+ second-elliptic-integral)
+
+(require (only-in "../../../main.rkt" π π/2))
+
+(require
+ (only-in racket/flonum
+          fl<
+          flabs
+          fl/
+          fl+
+          flsqrt
+          fl*
+          fl-))
 
 (define (first-elliptic-integral k)
   (if (fl< k 1.0)
@@ -42,5 +56,3 @@
     (if (= 1.0 (+ ε 1.0))
         (* 2 ε)
         (loop (/ ε 2)))))
-(define π pi)
-(define π/2 (/ π 2))

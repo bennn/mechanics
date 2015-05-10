@@ -10,6 +10,8 @@
 ;;;    ( J0(x) ... Jn(x) ) 
 ;;;   that is good to machine precision for x < 2 and large n.
 
+(provide bessjs)
+
 (define (bessjs nmax x)
   (let loop ([n (round-to-even (+ nmax (sqrt (* bessjs-accur (+ nmax 3)))))]
              [ans '()]

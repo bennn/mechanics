@@ -9,8 +9,14 @@
 ;; Consider also exporting under the more familiar names Rf, Rj, Rc,
 ;; Rd. Is there any input method that gets those names as subscripts.
 
-(require racket/math)
-(require racket/fixnum)
+(require
+ (only-in "../../../main.rkt" π π/2))
+
+(require
+ (only-in racket/math cosh tanh))
+
+(require
+ (only-in racket/fixnum fx< fx+))
 
 (define machine-ε
   (let loop ([ε 1.0])
@@ -130,8 +136,6 @@
                            (+ 1. (* sinφ k)))
                         1.)))
 
-(define π pi)
-(define π/2 (/ π 2))
 (define (complete-elliptic-integral-K k)
   (elliptic-integral-F π/2 k))
 
