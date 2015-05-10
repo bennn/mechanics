@@ -1,5 +1,6 @@
 #lang racket/base
 
+(require racket/contract)
 (provide
  first-elliptic-integral
  elliptic-integrals

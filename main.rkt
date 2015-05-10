@@ -6,18 +6,20 @@
 
 ;; The contents of this file will eventually live somewhere else,
 ;; and 'main.rkt' will just be the library's API.
+(require racket/contract)
 
 (provide
  def
- π
- π/2
- π/3
- π/4
- π/6
- π/12
- 2/π
- 3π/4
- machine-ε
+ (contract-out
+  [π flonum?]
+  [π/2 flonum?]
+  [π/3 flonum?]
+  [π/4 flonum?]
+  [π/6 flonum?]
+  [π/12 flonum?]
+  [2/π flonum?]
+  [3π/4 flonum?]
+  [machine-ε flonum?])
  ;replace 'provide' with a form that requires a doc and a contract
  ;macros for easy list access (to replace vector-ref, etc)
 )
