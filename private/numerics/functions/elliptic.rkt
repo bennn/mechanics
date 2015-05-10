@@ -10,7 +10,7 @@
 ;; Rd. Is there any input method that gets those names as subscripts.
 
 (require
- (only-in "../../../main.rkt" π π/2))
+ (only-in "../../../main.rkt" π π/2 machine-ε))
 
 (require
  (only-in racket/math cosh tanh))
@@ -18,16 +18,8 @@
 (require
  (only-in racket/fixnum fx< fx+))
 
-(define machine-ε
-  (let loop ([ε 1.0])
-    (if (= 1.0 (+ ε 1.0))
-        (* 2 ε)
-        (loop (/ ε 2)))))
-
-(define *machine-epsilon* machine-ε)
-
 (define (Rf x y z)
-  (define ε (expt machine-ε (/ 1 6)))
+  (define ε (expt (machine-ε) (/ 1 6)))
   (define C₁ (/ 1. 24.))
   (define C₂ 0.1)
   (define C₃ (/ 3. 44.))
@@ -63,7 +55,7 @@
 (define Carlson-elliptic-1 Rf)
 
 (define (Carlson-elliptic₁-simple x y z)
-  (define ε (sqrt machine-ε))
+  (define ε (sqrt (machine-ε)))
   (let Rf₁ ([x x]
             [y y]
             [z z])
@@ -83,7 +75,7 @@
 (define Carlson-elliptic-1-simple Carlson-elliptic₁-simple)
 
 (define (Rd x y z)
-  (define ε (sqrt machine-ε))
+  (define ε (sqrt (machine-ε)))
   (define C₁ (/ -3. 14.))
   (define C₂ (/ 1. 6.))
   (define C₃ (/ -9. 22.))
@@ -163,7 +155,7 @@
                  [c k]
                  [d 0.0]
                  [powers-2 1.0])
-        (if (< (abs c) machine-ε)
+        (if (< (abs c) (machine-ε))
             (let ([first-elliptic-integral (/ π/2 a)])
               (continue first-elliptic-integral
                         (* first-elliptic-integral
@@ -197,7 +189,7 @@
 ;; TODO: refactor this, but write tests first to make sure we didnt
 ;; break anything.
 (define Jacobi-elliptic-functions
-  (let ((eps (sqrt *machine-epsilon*)))
+  (let ((eps (sqrt (machine-ε))))
     (lambda (uu k cont)
       ;; (cont sn cn dn)
       (let ((emc (- 1. (square k)))
