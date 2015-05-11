@@ -6,7 +6,7 @@
  elliptic-integrals
  second-elliptic-integral)
 
-(require (only-in "../../../main.rkt" π π/2 machine-ε))
+(require (only-in mechanics π π/2 machine-ε))
 
 (require
  (only-in racket/flonum

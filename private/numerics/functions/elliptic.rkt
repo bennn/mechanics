@@ -10,7 +10,7 @@
 ;; Rd. Is there any input method that gets those names as subscripts.
 
 (require
- (only-in "../../../main.rkt" π π/2 machine-ε))
+ (only-in mechanics π π/2 machine-ε))
 
 (require
  (only-in racket/math cosh tanh))

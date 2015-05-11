@@ -19,7 +19,7 @@
   [π/12 flonum?]
   [2/π flonum?]
   [3π/4 flonum?]
-  [machine-ε flonum?])
+  [machine-ε (-> flonum?)])
  ;replace 'provide' with a form that requires a doc and a contract
  ;macros for easy list access (to replace vector-ref, etc)
 )
@@ -55,12 +55,13 @@
 (define 2/π (/ 2 π))
 (define 3π/4 (* 3 π/4))
 
+(define the-machine-ε #f)
+
 (define (machine-ε)
   (define (find-machine-ε ε)
     (if (= 1.0 (+ ε 1.0))
         (* 2 ε)
         (find-machine-ε (/ ε 2))))
-  (define the-machine-ε #f)
   (unless the-machine-ε
     (set! the-machine-ε (find-machine-ε 1.0)))
   the-machine-ε)

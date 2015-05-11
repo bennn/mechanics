@@ -14,7 +14,7 @@
  bessh)
 
 (require
- (only-in "../../../main.rkt"
+ (only-in mechanics
           π
           π/4
           π/2
