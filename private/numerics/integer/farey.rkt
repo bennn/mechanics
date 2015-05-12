@@ -20,7 +20,7 @@
 (require
  racket/match
  mechanics
- (only-in racket/math pi)
+ (only-in racket/math pi sqr)
  (only-in racket/flonum flmax)
  (only-in math/base phi.0)
  (only-in racket/set set
@@ -79,7 +79,7 @@
 
 ;; In the limit as n->infinity the length of the nth Farey sequence is
 (define (farey-length n)
-  (* (/ 3 (square pi)) (square n)))
+  (* (/ 3 (sqr pi)) (sqr n)))
 
 ;; Of course, the computation of the nth Farey sequence by filtering
 ;; the nth level of the Farey tree is horribly inefficient.  There
