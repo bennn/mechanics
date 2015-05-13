@@ -1,17 +1,18 @@
 #lang racket/base
 
 ;; This module defines the bessel functions of integer order
-
+(require racket/contract/base)
 (provide
- bessj₀
- bessj₁
- bessj
- bessy₀
- bessy₁
- bessy
- bessh₀
- bessh₁
- bessh)
+ (contract-out
+  [bessj₀ (-> number? number?)]
+  [bessj₁ (-> number? number?)]
+  [bessj  (-> integer? number? number?)]
+  [bessy₀ (-> number? number?)]
+  [bessy₁ (-> number? number?)]
+  [bessy  (-> integer? number? number?)]
+  [bessh₀ (-> number? complex?)]
+  [bessh₁ (-> number? complex?)]
+  [bessh  (-> integer? number? complex?)]))
 
 (require
  (only-in mechanics
@@ -367,6 +368,8 @@
           (lp (fx+ i 1)
               (- (/ (* 2 i yₙ) x)
                  yₚ))))]))
+
+;; Hankel functions H¹
 
 (define (bessh n x)
   (+ (bessj n x)

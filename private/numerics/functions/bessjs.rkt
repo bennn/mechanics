@@ -10,10 +10,10 @@
 ;;;    ( J0(x) ... Jn(x) ) 
 ;;;   that is good to machine precision for x < 2 and large n.
 
-(require racket/contract)
+(require racket/contract/base)
 (provide
  (contract-out
-  [bessjs (-> number? number? number?)]))
+  [bessjs (-> exact-nonnegative-integer? number? number?)]))
 
 (define (bessjs nmax x)
   (let loop ([n (round-to-even (+ nmax (sqrt (* bessjs-accur (+ nmax 3)))))]

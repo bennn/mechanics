@@ -20,7 +20,11 @@
   [2/π flonum?]
   [3π/4 flonum?]
   [machine-ε flonum?] 
-  [*machine-epsilon* flonum?])
+  [*machine-epsilon* flonum?]
+
+  ;; TODO: ->i contract that introspects the argument to give more
+  ;; info about return value. Ex) real? -> real?
+  [square (-> number? number?)])
  ;replace 'provide' with a form that requires a doc and a contract
  ;macros for easy list access (to replace vector-ref, etc)
 )
@@ -67,3 +71,5 @@
 
 (define machine-ε (machine-ε₀))
 (define *machine-epsilon* machine-ε)
+
+(define (square x) (* x x))

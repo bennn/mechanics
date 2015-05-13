@@ -8,9 +8,66 @@
 ;;
 ;; Consider also exporting under the more familiar names Rf, Rj, Rc,
 ;; Rd. Is there any input method that gets those names as subscripts.
+(require racket/contract/base)
+(provide
+ (contract-out
+  ;; Carlson elliptic integrals R_F
+  [Rf three-nonnegative-reals->number]
+  [Carlson-elliptic₁ three-nonnegative-reals->number]
+  [Carlson-elliptic-1 three-nonnegative-reals->number]
+  [Carlson-elliptic₁-simple three-nonnegative-reals->number]
+  [Carlson-elliptic-1-simple three-nonnegative-reals->number]
+
+  ;; R_D
+  [Rd three-nonnegative-reals->number]
+  [Carlson-elliptic₂ three-nonnegative-reals->number]
+  [Carlson-elliptic-2 three-nonnegative-reals->number]
+
+  ;; Elliptic integrals of the first kind: F(φ,k)
+
+  ;; TODO: does it make sense to allow k²sin²φ > 1?
+  [elliptic-integral-F (-> real?
+                           (and/c real? positive? (</c 1))
+                           number?)]
+  
+  [complete-elliptic-integral-K (-> (and/c real? positive? (</c 1))
+                                    number?)]
+  
+  [complete-elliptic-integral-E (-> (and/c real? positive? (</c 1))
+                                    number?)]
+  
+  [elliptic-integrals (-> (and/c real? positive? (</c 1))
+                          (-> flonum? flonum? any)
+                          any)]
+  
+  [first-elliptic-integral (-> (and/c real? positive? (</c 1))
+                               number?)]
+  
+  [second-elliptic-integral (-> (and/c real? positive? (</c 1))
+                                number?)]
+  
+  [first-elliptic-integral&derivative (->i ([k (and/c real? (</c 1))]
+                                            [cont (-> number? number? any)])
+                                           [result (k)
+                                                   (if (= k 0)
+                                                       (cons/c flonum? flonum?)
+                                                       any/c)])]
+  
+  [Jacobi-elliptic-functions (-> number?
+                                 (and/c real? positive? (</c 1))
+                                 (-> number? number? number? any)
+                                 any)]))
+
+(define nonnegative-real? (not/c (and/c real? negative?)))
+
+(define three-nonnegative-reals->number
+  (-> nonnegative-real?
+      nonnegative-real?
+      nonnegative-real?
+      number?))
 
 (require
- (only-in mechanics π π/2 machine-ε))
+ (only-in mechanics π π/2 square machine-ε))
 
 (require
  (only-in racket/math cosh tanh))
@@ -19,7 +76,7 @@
  (only-in racket/fixnum fx< fx+))
 
 (define (Rf x y z)
-  (define ε (expt (machine-ε) (/ 1 6)))
+  (define ε (expt machine-ε (/ 1 6)))
   (define C₁ (/ 1. 24.))
   (define C₂ 0.1)
   (define C₃ (/ 3. 44.))
@@ -55,7 +112,7 @@
 (define Carlson-elliptic-1 Rf)
 
 (define (Carlson-elliptic₁-simple x y z)
-  (define ε (sqrt (machine-ε)))
+  (define ε (sqrt machine-ε))
   (let Rf₁ ([x x]
             [y y]
             [z z])
@@ -75,7 +132,7 @@
 (define Carlson-elliptic-1-simple Carlson-elliptic₁-simple)
 
 (define (Rd x y z)
-  (define ε (sqrt (machine-ε)))
+  (define ε (sqrt machine-ε))
   (define C₁ (/ -3. 14.))
   (define C₂ (/ 1. 6.))
   (define C₃ (/ -9. 22.))
@@ -118,8 +175,6 @@
 (define Carlson-elliptic₂ Rd)
 (define Carlson-elliptic-2 Rd)
 
-(define (square x) (* x x))
-
 (define (elliptic-integral-F φ k)
   (define sinφ (sin φ))
   (* sinφ
@@ -155,7 +210,7 @@
                  [c k]
                  [d 0.0]
                  [powers-2 1.0])
-        (if (< (abs c) (machine-ε))
+        (if (< (abs c) machine-ε)
             (let ([first-elliptic-integral (/ π/2 a)])
               (continue first-elliptic-integral
                         (* first-elliptic-integral
@@ -189,7 +244,7 @@
 ;; TODO: refactor this, but write tests first to make sure we didnt
 ;; break anything.
 (define Jacobi-elliptic-functions
-  (let ((eps (sqrt (machine-ε))))
+  (let ((eps (sqrt machine-ε)))
     (lambda (uu k cont)
       ;; (cont sn cn dn)
       (let ((emc (- 1. (square k)))
