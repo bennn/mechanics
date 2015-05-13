@@ -213,13 +213,6 @@
                       [(out) (/ ans (* 2 sum) bj)])
          (if (and (< x 0) (odd? n)) (- ans) ans)))]))
 
-(define (bessj:0<x<<n n x)
-  (/ (expt (/ x 2) n) (factorial n)))
-
-(define (bessj:n<<x n x)
-  (* (sqrt (/ 2 π x))
-     (cos (- x (* π/2 n) π/4))))
-
 (define (bessy₀ x)
   (define |x| (magnitude x))
   (if (< |x| 8.0)
@@ -372,3 +365,46 @@
 (define (bessh₀ x) (bessh 0 x))
 
 (define (bessh₁ x) (bessh 1 x))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                                  TESTING                                   ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(module+ test
+  (require rackunit
+           rackunit/text-ui)
+
+  ;; Asymptotic formulae, for testing
+  (define (bessj:0<x<<n n x)
+    (/ (expt (/ x 2) n) (factorial n)))
+
+  (define (bessj:n<<x n x)
+    (* (sqrt (/ 2 π x))
+       (cos (- x (* π/2 n) π/4))))
+
+  (define (bessh:n<<x n x)
+    (* (sqrt (/ 2 π x))
+       (exp (* +i (- x (* π/2 n) π/4)))))
+
+  ;; Consistency check based on Wronskian:
+
+  ;; J_{n+1}(x) Y_n(x) - J_n(x) Y_{n+1}(x) = 2/(pi x)
+
+  (define (bessel-check n x)
+    (/ (- (* (bessj (+ n 1) x) (bessy n x))
+          (* (bessj n x) (bessy (+ n 1) x))
+          (/ 2 (* π x)))
+       (/ 2 (* π x))))
+
+  (run-tests
+   (test-suite
+    "Test suite for Bessel functions."
+    (test-suite
+     "Consistent with scmutils"
+     (test-= "TODO: scm utils checks" 0 1 0))
+    (test-suite
+     "Consistent with Wolfram Alpha"
+     (test-= "TODO: add wolfram alpha checks" 0 1 0)))))
