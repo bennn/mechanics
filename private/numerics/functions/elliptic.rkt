@@ -25,8 +25,13 @@
 
   ;; Elliptic integrals of the first kind: F(φ,k)
 
-  ;; TODO: does it make sense to allow k²sin²φ > 1?
+  ;; TODO: does it make sense to allow k²sin²φ > 1? NO
+  ;;       first param should be in [0, 2π]
   [elliptic-integral-F (-> real?
+                           (and/c real? positive? (</c 1))
+                           number?)]
+
+  [elliptic-integral-E (-> real?
                            (and/c real? positive? (</c 1))
                            number?)]
   
