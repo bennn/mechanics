@@ -227,6 +227,9 @@
                           powers-2))
                   (( powers-2 2.0)))))))
 
+(define (complete-elliptic-integrals k)
+  (elliptic-integrals (λ (x y) (cons x y))))
+
 ;; K
 (define (first-elliptic-integral k)
   (elliptic-integrals k (λ (K E) K)))
@@ -245,6 +248,9 @@
                (/ (- (/ Ek (- 1 (square k)))
                      Kk)
                   k))))))
+
+(define (first-complete-elliptic-integral&derivative k)
+  (first-elliptic-integral&derivative k (λ (x y) (cons x y))))
 
 ;; TODO: refactor this, but write tests first to make sure we didnt
 ;; break anything.
