@@ -19,6 +19,7 @@
   [π/6 flonum?]
   [π/12 flonum?]
   [2/π flonum?]
+  [3π/2 flonum?]
   [3π/4 flonum?]
   [machine-ε flonum?] 
   [*machine-epsilon* flonum?]
@@ -60,6 +61,7 @@
 (define π/6 (/ π 6))
 (define π/12 (/ π 12))
 (define 2/π (/ 2 π))
+(define 3π/2 (/ (* 3 π) 2))
 (define 3π/4 (* 3 π/4))
 
 (begin-for-syntax
