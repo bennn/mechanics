@@ -12,6 +12,7 @@
  def
  (contract-out
   [π flonum?]
+  [2π flonum?]
   [π/2 flonum?]
   [π/3 flonum?]
   [π/4 flonum?]
@@ -52,6 +53,7 @@
 ;; Constants
 
 (define π pi)
+(define 2π (* 2 π))
 (define π/2 (/ π 2))
 (define π/3 (/ π 3))
 (define π/4 (/ π 4))
