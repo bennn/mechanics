@@ -68,6 +68,13 @@
   (require rackunit
            rackunit/text-ui
            (only-in mechanics π/2 π 3π/2 2π machine-ε)
+           (only-in math/matrix
+                    matrix
+                    vector*->matrix
+                    matrix-num-rows
+                    matrix-num-cols
+                    matrix-ref)
+           (only-in racket/vector vector-map)
            (only-in racket/format ~a)
            (only-in racket/list range))
 
@@ -76,41 +83,45 @@
     "Test suite for bessel functions of integer order"
     (test-case
      "Output matches wolfram alpha."
-     (let ([wolfram-alpha-output
-            #(#(0.4720012157682347674476683878725009623642404480476665
+     (let* ([max-bessel-order 4]
+            [input-values (vector π/2 π 3π/2 2π)]
+            [wolfram-alpha-output
+             (matrix
+              [[0.4720012157682347674476683878725009623642404480476665
                 0.5668240889058739377112449634671602835403174155414899
                 0.2497016291352035437004568140598349286692444512504045
                 0.0690358882935960517681315419235345127865894136174168
-                0.0139960398087738087561476475928853212701258364902632)
-              #(-0.30424217764409386420203491281770492396965053478389
+                0.0139960398087738087561476475928853212701258364902632] 
+               [-0.30424217764409386420203491281770492396965053478389
                 0.2846153431797527573453105996861314057098111818494657
                 0.4854339326315091097054957161831892378519525806986894
                 0.3334583362029895353902185817398867483022440044539132
-                0.1514245776313497107537095593154838070387599251684023)
-              #(-0.26585724995832447634200508572810409283585670423879
+                0.1514245776313497107537095593154838070387599251684023] 
+               [-0.26585724995832447634200508572810409283585670423879
                 -0.28165790875051959437304046973269013136918561636253
                 0.1463179207888012887168984214355549137790433534568295
                 0.4058564173183388935941409692546731240060510655130263
-                0.3704345192254447209477698577857675960813567380242590)
-              #(0.2202769085399344622768816507208408344549146363474951
+                0.3704345192254447209477698577857675960813567380242590] 
+               [0.2202769085399344622768816507208408344549146363474951
                 -0.21238253007636905220285865567108499622725602585368
                 -0.28788036751596899440312761555263523520769185918393
                 0.0291121960392572124902717611029454518524876804952073
-                0.3156804669394174890804788139717018390997948930552267))]
-           [max-bessel-order 4]
-           [input-values (vector π/2 π 3π/2 2π)])
-       (for ([order (in-range max-bessel-order)]
-             [i (in-range (vector-length input-values))])
-         (let* ([input-value (vector-ref input-values i)]
-                [expected-output
-                 (vector-ref (vector-ref wolfram-alpha-output order) i)]
-                [actual-output
-                 (list-ref (bessjs max-bessel-order input-value) i)])
-           (check-= actual-output
-                    expected-output
-                    1e-14
-                    (~a "Value of bessel J of order " order
-                        " at input value " input-value
+                0.3156804669394174890804788139717018390997948930552267]])]
+            [actual-output
+             (vector*->matrix
+              (vector-map (λ (input-value)
+                            (list->vector (bessjs max-bessel-order
+                                                  input-value)))
+                          input-values))])
+       (for* ([i (in-range (matrix-num-rows actual-output))]
+              [j (in-range (matrix-num-cols actual-output))])
+         (let ([actual (matrix-ref actual-output i j)]
+               [expected (matrix-ref wolfram-alpha-output i j)])
+           (check-= actual
+                    expected
+                    8e-14
+                    (~a "Value of bessel J of order " j
+                        " at input value " (vector-ref input-values i)
                         " does not match Wolfram Alpha. "
-                        "Got: " actual-output
-                        ". Expected: " expected-output)))))))))
+                        "Got: " actual
+                        ". Expected: " expected)))))))))
