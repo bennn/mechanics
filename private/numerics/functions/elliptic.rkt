@@ -201,6 +201,7 @@
         (* (square (* sinφ k))
            (/ (Carlson-elliptic₂ cos²φ q 1.) 3.)))))
 
+
 (define (complete-elliptic-integral-E k)
   (elliptic-integral-E π/2 k))
 
@@ -215,7 +216,7 @@
                  [c k]
                  [d 0.0]
                  [powers-2 1.0])
-        (if (< (abs c) machine-ε)
+        (if (< (magnitude c) machine-ε)
             (let ([first-elliptic-integral (/ π/2 a)])
               (continue first-elliptic-integral
                         (* first-elliptic-integral
@@ -225,7 +226,7 @@
                   (/ (- a b) 2.0)
                   (+ d (* (square c)
                           powers-2))
-                  (( powers-2 2.0)))))))
+                  (* powers-2 2.0))))))
 
 (define (complete-elliptic-integrals k)
   (elliptic-integrals (λ (x y) (cons x y))))
@@ -301,3 +302,40 @@
 			    (if bo 
 				(cont (/ sn d) a cn)
 				(cont sn cn dn))))))))))))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                                  TESTING                                   ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(module+ test
+  (require rackunit
+           rackunit/text-ui
+           (only-in mechanics π/2))
+
+  (define test-suite-ε 1e-7)
+  (run-tests
+   (test-suite
+    "Test suite for Carlsen elliptic integrals."
+    (test-suite
+     ;; tests ripped stright from scmutils to make sure we didn't
+     ;; break anything
+     "Consistent with scmutils"
+     (test-= "elliptic integral F 1 consistent"
+             (elliptic-integral-F 1 .9)
+             1.159661070732199
+             test-suite-ε)
+     (test-= "elliptic integral F π/2 consistent"
+             (elliptic-integral-F π/2 .9)
+             2.2805491384227703
+             test-suite-ε)
+     (test-= "first elliptic integral consistent"
+             (first-elliptic-integral .9)
+             2.2805491384227703
+             machine-ε)
+     (test-= "second elliptic integral consistent"
+             (second-elliptic-integral .9)
+             1.171697052781614
+             machine-ε)))))
