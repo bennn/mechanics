@@ -81,7 +81,7 @@
  (only-in racket/fixnum fx< fx+))
 
 (define (Rf x y z)
-  (define ε (expt machine-ε (/ 1 6)))
+  (define ε (expt machine-ε 1/6))
   (define C₁ (/ 1. 24.))
   (define C₂ 0.1)
   (define C₃ (/ 3. 44.))
@@ -152,11 +152,11 @@
     (let* ([√x (sqrt x)]
            [√y (sqrt y)]
            [√z (sqrt z)]
-           [λₐ (+ √x (+ √y √z) (* √y √z))]
+           [λₐ (+ (* √x (+ √y √z)) (* √y √z))]
            [sump (+ sum (/ fac (* √z (+ z λₐ))))]
            [facp (* .25 fac)]
            [xp (* .25 (+ x λₐ))]
-           [yp (* 1/4 (+ y λₐ))]
+           [yp (* .25 (+ y λₐ))]
            [zp (* .25 (+ z λₐ))]
            [μ (* .2 (+ xp yp (* 3. zp)))]
            [Δx (/ (- μ xp) μ)]
@@ -335,6 +335,10 @@
              (first-elliptic-integral .9)
              2.2805491384227703
              machine-ε)
+     (test-= "elliptic integral E consistent"
+             (elliptic-integral-E 1 .9)
+             .8762622199915486
+             test-suite-ε)
      (test-= "second elliptic integral consistent"
              (second-elliptic-integral .9)
              1.171697052781614
