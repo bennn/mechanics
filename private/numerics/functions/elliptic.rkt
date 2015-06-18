@@ -336,7 +336,39 @@
              (elliptic-integral-E 1 .9)
              .8762622199915486
              test-suite-ε)
+     (test-= "complete elliptic integral E consistent"
+             (complete-elliptic-integral-E .9)
+             1.1716970527816144
+             test-suite-ε)
      (test-= "second elliptic integral consistent"
              (second-elliptic-integral .9)
              1.171697052781614
-             machine-ε)))))
+             machine-ε)
+     (test-= "Jacobi elliptic consistent with sin(1.3369113189159216)"
+             (Jacobi-elliptic-functions 1.3369113189159216
+                                        0.
+                                        (compose car list))
+             (sin 1.3369113189159216)
+             machine-ε)
+     (test-= "Jacobi elliptic-integral-F identity consistent"
+             (Jacobi-elliptic-functions (elliptic-integral-F 1.1 .92)
+                                        .92
+                                        (compose car list))
+             (sin 1.1)
+             test-suite-ε)
+     (let-values ([(x y z)
+                   (apply values
+                          (Jacobi-elliptic-functions
+                           (elliptic-integral-F 1.1 .92)
+                           .92
+                           list))])
+       (test-= "Jacobi elliptic integral cn consistent"
+               (+ (square x) (square y))
+               1
+               machine-ε)
+       (test-= "Jacobi elliptic integral dn consistent"
+               (sqrt (- 1
+                        (* (square .92)
+                           (square x))))
+               z
+               machine-ε))))))
