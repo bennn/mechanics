@@ -82,25 +82,24 @@
 
 (define (Rf x y z)
   (define ε (expt machine-ε 1/6))
-  (define C₁ (/ 1. 24.))
-  (define C₂ 0.1)
-  (define C₃ (/ 3. 44.))
-  (define C₄ (/ 1. 14.))
+  (define C₁ 1/24)
+  (define C₂ 1/10)
+  (define C₃ 3/44)
+  (define C₄ 1/14)
   (define √x (sqrt x))
   (define √y (sqrt y))
   (define √z (sqrt z))
   (define λₐ (+ (* √x
                    (+ √y √z))
                 (* √y √z)))
-  (define xp (* .25 (+ x λₐ)))
-  (define yp (* .25 (+ y λₐ)))
-  (define zp (* .25 (+ z λₐ)))
-  (define μ (/ (+ xp yp zp) 3.))
+  (define xp (* 1/4 (+ x λₐ)))
+  (define yp (* 1/4 (+ y λₐ)))
+  (define zp (* 1/4 (+ z λₐ)))
+  (define μ (/ (+ xp yp zp) 3))
   (define Δx (/ (- μ x) μ))
   (define Δy (/ (- μ y) μ))
   (define Δz (/ (- μ z) μ))
   (define error (max (abs Δx) (abs Δy) (abs Δz)))
-
   (if (> error ε)
       (Rf xp yp zp)
       (let ([e₂ (- (* Δx Δy)
@@ -121,18 +120,18 @@
   (let Rf₁ ([x x]
             [y y]
             [z z])
-    (let ([μ (/ (+ x y z) 3.0)])
+    (let ([μ (/ (+ x y z) 3)])
       (if (< (max (abs (/ (- x μ) μ))
                   (abs (/ (- y μ) μ))
                   (abs (/ (- z μ) μ)))
              ε)
-          (/ 1.0 (sqrt μ))
+          (/ 1 (sqrt μ))
           (let ([λ (+ (sqrt (* x y))
                       (sqrt (* x z))
                       (sqrt (* y z)))])
-            (Rf₁ (/ (+ x λ) 4.0)
-                 (/ (+ y λ) 4.0)
-                 (/ (+ z λ) 4.0)))))))
+            (Rf₁ (/ (+ x λ) 4)
+                 (/ (+ y λ) 4)
+                 (/ (+ z λ) 4)))))))
 
 (define Carlson-elliptic-1-simple Carlson-elliptic₁-simple)
 
@@ -149,33 +148,31 @@
              [z z]
              [sum 0.]
              [fac 1.])
-    (let* ([√x (sqrt x)]
-           [√y (sqrt y)]
-           [√z (sqrt z)]
-           [λₐ (+ (* √x (+ √y √z)) (* √y √z))]
-           [sump (+ sum (/ fac (* √z (+ z λₐ))))]
-           [facp (* .25 fac)]
-           [xp (* .25 (+ x λₐ))]
-           [yp (* .25 (+ y λₐ))]
-           [zp (* .25 (+ z λₐ))]
-           [μ (* .2 (+ xp yp (* 3. zp)))]
-           [Δx (/ (- μ xp) μ)]
-           [Δy (/ (- μ yp) μ)]
-           [Δz (/ (- μ zp) μ)])
-      (if (> (max (abs Δx) (abs Δy) (abs Δz)) ε)
-          (loop xp yp zp sump facp)
-          (let* ([ea (* Δx Δy)]
-                 [eb (* Δz Δz)]
-                 [ec (- ea eb)]
-                 [ed (- ea (* 6. eb))]
-                 [ee (+ ed ec ec)])
-            (+ (* 3 sump)
-               (/ (* facp
-                     (+ (+ 1.
-                           (* ed
-                              (+ C₁ (* C₅ ed) (* C₆ Δz ee))))
-                        (* Δz (+ (* C₂ ee) (* Δz (+ (* C₃ ec) (* Δz C₄ ea)))))))
-                  (* μ (sqrt μ)))))))))
+    (define √x (sqrt x))
+    (define √y (sqrt y))
+    (define √z (sqrt z))
+    (define λₐ (+ (* √x (+ √y √z)) (* √y √z)))
+    (define sump (+ sum (/ fac (* √z (+ z λₐ)))))
+    (define facp (* .25 fac))
+    (define xp (* .25 (+ x λₐ)))
+    (define yp (* .25 (+ y λₐ)))
+    (define zp (* .25 (+ z λₐ)))
+    (define μ (* .2 (+ xp yp (* 3. zp))))
+    (define Δx (/ (- μ xp) μ))
+    (define Δy (/ (- μ yp) μ))
+    (define Δz (/ (- μ zp) μ))
+    (if (> (max (abs Δx) (abs Δy) (abs Δz)) ε)
+        (loop xp yp zp sump facp)
+        (let* ([ea (* Δx Δy)]
+               [eb (* Δz Δz)]
+               [ec (- ea eb)]
+               [ed (- ea (* 6. eb))]
+               [ee (+ ed ec ec)])
+          (+ (* 3 sump)
+             (/ (* facp
+                   (+ (+ 1. (* ed (+ C₁ (* C₅ ed) (* C₆ Δz ee))))
+                      (* Δz (+ (* C₂ ee) (* Δz (+ (* C₃ ec) (* Δz C₄ ea)))))))
+                (* μ (sqrt μ))))))))
 
 (define Carlson-elliptic₂ Rd)
 (define Carlson-elliptic-2 Rd)
