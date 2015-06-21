@@ -250,56 +250,54 @@
 (define (first-complete-elliptic-integral&derivative k)
   (first-elliptic-integral&derivative k (λ (x y) (cons x y))))
 
-;; TODO: refactor this, but write tests first to make sure we didnt
-;; break anything.
-(define Jacobi-elliptic-functions
-  (let ((eps (sqrt machine-ε)))
-    (lambda (uu k cont)
-      ;; (cont sn cn dn)
-      (let ((emc (- 1. (square k)))
-	    (u uu)
-	    (d 1.0))
-	(if (= emc 0.) 
-	    (let ((cn (/ 1. (cosh u))))
-	      (cont (tanh u) cn cn))
-	    (let ((bo (< emc 0.)))
-	      (when bo 
-                (begin
-                  (set! d (- 1. emc))
-                  (set! emc (- (/ emc d)))
-                  (set! d (sqrt d))
-                  (set! u (* u d))))
-	      (let ((dn 1.))
-		(let loop ((a 1.) (emc emc) (i 1) (em '()) (en '()))
-		  (let ((emc (sqrt emc)))
-		    (let ((c (* 0.5 (+ a emc))))
-		      (if (and (> (abs (- a emc)) (* eps a))
-			       (fx< i 13))
-			  (loop c (* a emc) (fx+ i 1) (cons a em) (cons emc en))
-			  ;; label 1
-			  (let* ((u (* c u))
-				 (sn (sin u))
-				 (cn (cos u)))
-			    (when (not (= sn 0.)) 
-                              (let* ((a (/ cn sn))
-                                     (c (* a c)))
-                                (let loop2 ((em em) (en en))
-                                  (if (and (not (null? em)) (not (null? en)))
-                                      (let ((b (car em)))
-                                        (set! a (* c a))
-                                        (set! c (* dn c))
-                                        (set! dn (/ (+ (car en) a) (+ a b)))
-                                        (set! a (/ c b))
-                                        (loop2 (cdr em) (cdr en)))
-                                      (let ((a (/ 1. (sqrt (+ 1. (square c))))))
-                                        (if (< sn 0.)
-                                            (set! sn (- a))
-                                            (set! sn a))
-                                        (set! cn (* c sn)))))))
-			    (if bo 
-				(cont (/ sn d) a cn)
-				(cont sn cn dn))))))))))))))
+;; A battle was fought here. – bkc 06/21/2015
+(define (Jacobi-elliptic-functions u k cont)
+  (define ε (sqrt machine-ε))
+  (define modulus (- 1 (square k)))
 
+  (when (= modulus 0)
+    (cont (tanh u) (/ 1 (cosh u)) (/ 1 (cosh u))))
+  
+  (define-values (emc a em en)
+    (for/fold ([emc (if (< modulus 0)
+                        (- (/ modulus (- 1 modulus)))
+                        modulus)]
+               [a 1]
+               [em '()]
+               [en '()])
+        ([i (in-range 12)]
+         #:break (< (abs (- a emc)) (* ε a)))
+      (values (* a (sqrt emc))
+              (* 1/2 (+ a (sqrt emc)))
+              (cons a em)
+              (cons (sqrt emc) en))))
+  
+  (define c (* 1/2 (+ a (sqrt emc))))
+  (define cu (* c u))
+  (define sn (sin cu))
+  (define cn (cos cu))
+  (define dn 1)
+
+  (unless (= sn 0)
+    (let*-values
+        ([(a c dnn)
+          (for/fold ([a (/ cn sn)]
+                     [c (* (/ cn sn) c)]
+                     [dn dn])
+              ([x (in-list em)]
+               [y (in-list en)])
+            (values (/ (* dn c) x)
+                    (* dn c)
+                    (/ (+ y (* c a))
+                       (+ (* c a) x))))]
+         [(v) (/ 1. (sqrt (+ 1. (square c))))])
+      (set! sn (if (< sn 0) (- v) v))
+      (set! cn (* c sn))
+      (set! dn dnn)))
+
+  (if (< emc 0)
+      (cont (/ sn (sqrt (- 1 emc))) a cn)
+      (cont sn cn dn)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
