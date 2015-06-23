@@ -184,40 +184,34 @@
                   (bessj (- n) x)
                   (- (bessj (- n) x)))]
    [else
-    (let* ([ax (magnitude x)]
-           [2/ax (/ 2.0 ax)])
-      (if (> ax n)
-          (let lp ([j 1]
-                   [bjm (bessj₀ ax)]
-                   [bj (bessj₁ ax)])
-            (if (fx= j n)
-                (if (and (< x 0.0) (odd? n)) (- bj) bj)
-                (lp (fx+ j 1)
-                    bj
-                    (- (* j 2/ax bj)
-                       bjm))))
-          (let ([m (round-to-even (+ n (sqrt (* acc n))))]
-                [bj 1.0]
-                [bjp 0.0]
-                [ans 0.0]
-                [sum 0.0])
-            (let lp ([j m])
-              (when (fx= j 0)
-                (let ([ans (/ ans (- (* 2.0 sum) bj))])
-                  (if (and (< x 0.0) (odd? n)) (- ans) ans)
-                  (let ([bjm (- (* j 2/ax bj) bjp)])
-                    (set! bjp bj)
-                    (set! bj bjm)
-                    (when (> (magnitude bj) bigno)
-                      (set! bj  (* bj bigni))
-                      (set! bjp (* bjp bigni))
-                      (set! ans (* ans bigni))
-                      (set! sum (* sum bigni)))
-                    (when (odd? j)
-                      (set! sum (+ sum bj)))
-                    (when (fx= j n)
-                      (set! ans bjp))
-                    (lp (fx- j 1)))))))))]))
+    (define ax (magnitude x))
+    (define 2/ax (/ 2.0 ax))
+    (if (> ax n)
+        (let-values ([(bjm bj)
+                      (for/fold ([bjm (bessj₀ ax)]
+                                 [bj (bessj₁ ax)])
+                          ([j (in-range n)])
+                        (values bj (- (* j 2/ax bj) bjm)))])
+          (if (and (< x 0) (odd? n)) (- bj) bj))
+        (let*-values ([(start) (round-to-even (+ n (sqrt (* acc n))))]
+                      [(bj bjp ans sum)
+                       (for/fold ([bj  1]
+                                  [bjp 0]
+                                  [ans 0]
+                                  [sum 0])
+                           ([j (in-range start 0 -1)])
+                         (let* ([bjm (- (* j 2/ax bj) bj)]
+                                [next-values (list bjm bj ans sum)])
+                           (when (> (magnitude bjm) bigno)
+                             (for ([v (in-list next-values)])
+                               (set! v (* v bigni))))
+                           (when (odd? j)
+                             (set! sum (+ sum bjm)))
+                           (when (fx= j n)
+                             (set! ans bj))
+                           (apply values next-values)))]
+                      [(out) (/ ans (* 2 sum) bj)])
+         (if (and (< x 0) (odd? n)) (- ans) ans)))]))
 
 (define (bessj:0<x<<n n x)
   (/ (expt (/ x 2) n) (factorial n)))
