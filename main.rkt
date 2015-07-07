@@ -12,14 +12,14 @@
  ;; (provide (ID CONTRACT DOC) ...)
  ;; An optional `provide` form for identifiers that requires a contract and
  ;;  docstring. Desugars to a `contract-out` for the identifier.
- (all-from-out racket/contract)
- ;; Re-export `racket/contract`, for `provide/api` to work.
+ (all-from-out racket/contract/base)
+ ;; Re-export, for `provide/api` to work.
 )
 
 ;; -----------------------------------------------------------------------------
 
 (require
- racket/contract
+ racket/contract/base
  (for-syntax
   racket/base
   syntax/parse
@@ -30,10 +30,14 @@
 (define-syntax (provide/api stx)
   (syntax-parse stx
     [(_ (~seq pr*:id
-              #:contract ctr*
+              #:contract (~optional enabled?*:boolean #:defaults ([enabled?* #'#t])) ctr*
               #:doc      doc*:str) ...)
-     ;; Ignores the docstring for now.
-     ;;  should check if compiling in documentation mode & save doc.
-     ;; Also, a "no contract" form/flag would be nice.
-     #'(provide (contract-out [pr* ctr*] ...))]
+     ;; Ignores docstrings
+     #`(provide
+         #,@(for/list ([pr (in-list (syntax->list #'(pr* ...)))]
+                       [enabled? (in-list (syntax->list #'(enabled?* ...)))]
+                       [ctr (in-list (syntax->list #'(ctr* ...)))])
+              ;; Skip the contract if given `#:contract #f ctr`
+              (if (syntax-e enabled?) #`(contract-out [#,pr #,ctr]) #`#,pr)))]
     [_ (error (format "provide/api: syntax error, expected '(provide/api (ID CONTRACT DOC) ...)' but given '~a'" (syntax->datum stx)))]))
+
