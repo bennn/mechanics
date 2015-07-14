@@ -258,7 +258,6 @@
   (check-equal? (farey-decode (farey-encode 3/8))
                 3/8)
 
-
   ;; Farey-encoding is not very efficient.
   (check-equal? (farey-decode (farey-encode-real pi 25))
                 355/113)

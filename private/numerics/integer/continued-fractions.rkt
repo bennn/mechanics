@@ -30,15 +30,14 @@
   (let ([a (exact-floor x)])
     (stream-cons a (continued-fraction (/ 1 (- x a))))))
 
-;; TODO is the codomain correct?
 (define (convergents cfrac)
   ;; (-> (Streamof Integer) (Streamof Exact-Rational))
   (define (gen A1 A2 B1 B2 cfrac)
-    ;; (-> Integer Integer Integer Integer (Streamof Exact-Rational) TODO)
+    ;; (-> Integer Integer Integer Integer (Streamof Exact-Rational) (Streamof Exact-Rational))
     (let ((b (stream-first cfrac)))
       (let ([An (+ (* b A1) A2)]
             [Bn (+ (* b B1) B2)])
-        (stream-cons (/ An Bn) ;; TODO Integer or Exact-Rational
+        (stream-cons (/ An Bn)
                      (gen An A1 Bn B1 (stream-rest cfrac))))))
   (let ((b (stream-first cfrac)))
     (stream-cons b
