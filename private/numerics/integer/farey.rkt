@@ -1,6 +1,7 @@
 #lang racket/base
 
 ;; Farey Trees (aka Stern-Brocot Trees)
+;; http://mathworld.wolfram.com/FareySequence.html
 
 ;; In a Farey tree each level is constructed by
 ;; adjoining the mediants of the elements of the previous level
