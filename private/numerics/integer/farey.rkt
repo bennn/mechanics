@@ -1,7 +1,5 @@
 #lang racket/base
 
-;; TODO Racket analog of make-rational
-
 ;; Farey Trees (aka Stern-Brocot Trees)
 
 ;; In a Farey tree each level is constructed by
@@ -11,9 +9,7 @@
 ;; Because the mediants are always between the given fractions
 ;; the levels are ordered if the first one is ordered.
 
-(provide
- farey
- )
+(provide farey)
 
 ;; -----------------------------------------------------------------------------
 
@@ -31,9 +27,20 @@
 
 ;; =============================================================================
 
+;; bg: The "rational" with numerator 1 and denominator 0.
+(define INF 'inf)
+
+(define (numerator/inf n)
+  (or (and (eq? n INF) 1)
+      (numerator n)))
+
+(define (denominator/inf n)
+  (or (and (eq? n INF) 0)
+      (denominator n)))
+
 (define (mediant m1/n1 m2/n2)
-  (/ (+ (numerator m1/n1) (numerator m2/n2))
-     (+ (denominator m1/n1) (denominator m2/n2))))
+  (/ (+ (numerator/inf m1/n1) (numerator/inf m2/n2))
+     (+ (denominator/inf m1/n1) (denominator/inf m2/n2))))
 
 (define ((farey lo hi) n)
   (define (nlp n)
@@ -72,10 +79,10 @@
 ;; convergents of continued fractions.
 ;; For any irrational the convergents are the closest numbers
 ;; on the full Farey sequences.
-;; (define (full-farey-sequence n)
-;;   (for/list ([p/q ((farey (make-rational 0 1) (make-rational 1 0)) n)]
-;;              #:when (not (> denominator p/q) n))
-;;     p/q))
+(define (full-farey-sequence n)
+  (for/list ([p/q ((farey 0/1 INF) n)]
+             #:when (not (> denominator p/q) n))
+    p/q))
 
 ;; In the limit as n->infinity the length of the nth Farey sequence is
 (define (farey-length n)
@@ -98,10 +105,7 @@
   (cons 0 (sort (set->list farey-fractions) <)))
 
 (define (lamothe-simplicity m/n)
-  (/ 1 (* (numerator m/n) (denominator m/n))))
-
-;; TODO Theorem: The sums of the Lamothe-simplicities of the interior
-;; members of the nth Farey tree level from 0 to infinity is n-1
+  (/ 1 (* (numerator/inf m/n) (denominator/inf m/n))))
 
 (define (farey-encode m/n)
   (define (lp m n)
@@ -112,7 +116,7 @@
       (cons 'L (lp m (- n m)))]
      [else
       (cons 'R (lp (- m n) n))]))
-  (lp (numerator m/n) (denominator m/n)))
+  (lp (numerator/inf m/n) (denominator/inf m/n)))
 
 (define (farey-encode-real x maxlevel)
   (cond
@@ -127,24 +131,25 @@
           (farey-encode-real (- x 1)
                              (- maxlevel 1)))]))
 
-;; (define (farey-decode L/R-list)
-;;   (let lp ([lst L/R-list]
-;;            [low (make-rational 0 1)]
-;;            [hi  (make-rational 1 0)])
-;;     (let ([x (mediant low hi)])
-;;       (cond
-;;        [(null? lst)
-;;         x]
-;;        [(eq? (car lst) 'L)
-;;         (lp (cdr lst) low x)]
-;;        [else
-;;         (lp (cdr lst) x hi)]))))
+(define (farey-decode L/R-list)
+  (let lp ([lst L/R-list]
+           [low 0/1]
+           [hi  INF])
+    (let ([x (mediant low hi)])
+      (cond
+       [(null? lst)
+        x]
+       [(eq? (car lst) 'L)
+        (lp (cdr lst) low x)]
+       [else
+        (lp (cdr lst) x hi)]))))
 
 
 ;; =============================================================================
 
 (module+ test
-  (require rackunit)
+  (require rackunit
+           (only-in racket/list drop-right))
 
   ;; -- farey
 
@@ -208,6 +213,26 @@
 
   (check-pred farey? (farey-sequence 15))
 
+  ;; -- lamothe-simplicity
+  ;; Theorem: The sums of the Lamothe-simplicities of the interior
+  ;; members of the nth Farey tree level from 0 to infinity is n-1
+  (define (interior xs)
+    (cdr (drop-right xs 1)))
+
+  (define (lamothe-simplicity-sum f-seq)
+    (for/sum ([n (in-list (interior f-seq))])
+      (lamothe-simplicity n)))
+
+  (define-syntax-rule (check-lamothe [farey-seq expected] ...)
+    (begin
+      (check-equal? (lamothe-simplicity-sum farey-seq) expected)
+      ...))
+
+  (check-lamothe
+   [((farey 0 INF) 5) 4]
+   [((farey 0 INF) 6) 5]
+   [((farey 0 INF) 10) 9])
+
   ;; -- farey-encode
 
   (check-equal? (farey-encode 2/7)
@@ -227,15 +252,15 @@
 
   ;; -- farey-decode
 
-  ;; (check-equal? (farey-decode (farey-encode 3/7))
-  ;;               3/7)
+  (check-equal? (farey-decode (farey-encode 3/7))
+                3/7)
 
-  ;; (check-equal? (farey-decode (farey-encode 3/8))
-  ;;               3/8)
+  (check-equal? (farey-decode (farey-encode 3/8))
+                3/8)
 
 
-  ;; ;; Farey-encoding is not very efficient.
-  ;; (check-equal? (farey-decode (farey-encode-real pi 25))
-  ;;               355/113)
+  ;; Farey-encoding is not very efficient.
+  (check-equal? (farey-decode (farey-encode-real pi 25))
+                355/113)
 
 )
