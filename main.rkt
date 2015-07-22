@@ -8,23 +8,36 @@
 ;; and 'main.rkt' will just be the library's API.
 
 (provide
- def
- ;replace 'provide' with a form that requires a doc and a contract
- ;macros for easy list access (to replace vector-ref, etc)
+ provide/api
+ ;; (provide (ID CONTRACT DOC) ...)
+ ;; An optional `provide` form for identifiers that requires a contract and
+ ;;  docstring. Desugars to a `contract-out` for the identifier.
+ (all-from-out racket/contract/base)
+ ;; Re-export, for `provide/api` to work.
 )
 
 ;; -----------------------------------------------------------------------------
 
 (require
+ racket/contract/base
  (for-syntax
   racket/base
-  syntax/parse))
+  syntax/parse
+  (only-in unstable/sequence in-syntax)))
 
 ;; =============================================================================
 
-;; Sample macro, to make sure package install worked
-(define-syntax (def stx)
+(define-syntax (provide/api stx)
   (syntax-parse stx
-    [(_ x:id e)
-     (printf "MACRO WORKED\n")
-     #'(define x e)]))
+    [(_ (~seq pr*:id
+              #:contract (~optional enabled?*:boolean #:defaults ([enabled?* #'#t])) ctr*
+              #:doc      doc*:str) ...)
+     ;; Ignores docstrings
+     #`(provide
+         #,@(for/list ([pr (in-list (syntax->list #'(pr* ...)))]
+                       [enabled? (in-list (syntax->list #'(enabled?* ...)))]
+                       [ctr (in-list (syntax->list #'(ctr* ...)))])
+              ;; Skip the contract if given `#:contract #f ctr`
+              (if (syntax-e enabled?) #`(contract-out [#,pr #,ctr]) #`#,pr)))]
+    [_ (error (format "provide/api: syntax error, expected '(provide/api (ID CONTRACT DOC) ...)' but given '~a'" (syntax->datum stx)))]))
+
