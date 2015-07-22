@@ -9,7 +9,6 @@
 
 (provide
  provide/api
- ;; (provide (ID CONTRACT DOC) ...)
  ;; An optional `provide` form for identifiers that requires a contract and
  ;;  docstring. Desugars to a `contract-out` for the identifier.
  (all-from-out racket/contract/base)
