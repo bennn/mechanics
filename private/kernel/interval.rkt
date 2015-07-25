@@ -97,25 +97,22 @@
     (constructor-error "Expected boolean for `lo-closed?`, got '~a'" lo-closed?))
   (unless (boolean? hi-closed?)
     (constructor-error "Expected boolean for `hi-closed?`, got '~a'" hi-closed?))
-  (if (or (> lo hi)
-          (and (equal? lo hi) (not (or lo-closed? hi-closed?))))
+  (if (> lo hi)
     the-empty-interval
     (interval lo hi lo-closed? hi-closed?)))
 
 ;; We could possibly hack the #lang to distinguish square braces from parens.
 ;; (#lang mechanics)
-;; TODO make sure unicode display correctly
-;; TODO use unicode << and [[ instead (double-angle and double-brace)
 (define-syntax (parse-interval stx)
   ;; Do NOT check `lo:number`, let `make-interval/check` test & raise the error
-  (syntax-parse stx #:datum-literals (â¨ â© âª â«)
-    [(_ â¨ lo , hi â©)
+  (syntax-parse stx #:datum-literals (⟪ ⟫ ⟦ ⟧)
+    [(_ ⟪ lo , hi ⟫)
      #'(make-interval/check lo hi #f #f)]
-    [(_ â¨ lo , hi â«)
+    [(_ ⟪ lo , hi ⟧)
      #'(make-interval/check lo hi #f #t)]
-    [(_ âª lo , hi â©)
+    [(_  ⟦ lo , hi ⟫)
      #'(make-interval/check lo hi #t #f)]
-    [(_ âª lo , hi â«)
+    [(_  ⟦ lo , hi ⟧)
      #'(make-interval/check lo hi #t #t)]
     [_ (error 'interval "Could not parse syntax, expected an interval delimited by angle braces, got '~a'\n" stx)]))
 
@@ -232,17 +229,17 @@
 (module+ test
   (require rackunit)
 
-  ;; Constructors
-  (check-equal? (parse-interval â¨ 0 , 1 â©) (interval 0 1 #f #f))
-  (check-equal? (parse-interval â¨ 0 , 1 â«) (interval 0 1 #f #t))
-  (check-equal? (parse-interval âª 0 , 1 â©) (interval 0 1 #t #f))
-  (check-equal? (parse-interval âª 0 , 1 â«) (interval 0 1 #t #t))
+  ;; Constructors ⟪ ⟫ ⟦ ⟧
+  (check-equal? (parse-interval ⟪ 0 , 1 ⟫) (interval 0 1 #f #f))
+  (check-equal? (parse-interval ⟪ 0 , 1 ⟧) (interval 0 1 #f #t))
+  (check-equal? (parse-interval ⟦ 0 , 1 ⟫) (interval 0 1 #t #f))
+  (check-equal? (parse-interval ⟦ 0 , 1 ⟧) (interval 0 1 #t #t))
 
-  (check-equal? (parse-interval â¨ 0 , 0 â©) the-empty-interval)
-  (check-equal? (parse-interval â¨ 0 , 0 â«) (interval 0 0 #f #t))
-  (check-equal? (parse-interval âª 0 , 0 â©) (interval 0 0 #t #f))
-  (check-equal? (parse-interval âª 0 , 0 â«) (interval 0 0 #t #t))
-  (check-equal? (parse-interval â¨ 1 , 0 â©) the-empty-interval)
+  (check-equal? (parse-interval ⟪ 0 , 0 ⟫) (interval 0 0 #f #f))
+  (check-equal? (parse-interval ⟪ 0 , 0 ⟧) (interval 0 0 #f #t))
+  (check-equal? (parse-interval ⟦ 0 , 0 ⟫) (interval 0 0 #t #f))
+  (check-equal? (parse-interval ⟦ 0 , 0 ⟧) (interval 0 0 #t #t))
+  (check-equal? (parse-interval ⟪ 1 , 0 ⟫) the-empty-interval)
 
   ;; Utilities
   ;; -- interval-empty?
