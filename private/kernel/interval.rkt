@@ -10,62 +10,129 @@
 ;; - canonical form for lists of intervals
 ;;   (arranged from lowest lo bound upward, all intervals disjoint)
 
-(provide
-  ;; Constructor
-  (rename-out
-    [parse-interval      interval]
-    [make-interval/check make-interval])
-  ;; Accessors
-  interval-lo
-  interval-hi
-  interval-lo-closed?
-  interval-hi-closed?
-  interval?
-  ;; Utilities
-  interval-empty?
-;  #:contract (-> interval? boolean?)
-;  #:doc "True if the argument is an empty interval. False otherwise."
-
-  interval-lo-open?
-;  #:contract (-> interval? boolean?)
-;  #:doc "True if the lower bound of the interval is open."
-
-  interval-hi-open?
-;  #:contract (-> interval? boolean?)
-;  #:doc "True if the upper bound of the interval is open."
-
-  interval-disjoint?
-;  #:contract (-> interval? interval? boolean?)
-;  #:doc "True if the two intervals do not overlap"
-
-  interval-intersect
-;  #:contract (-> interval? interval? interval?)
-;  #:doc "Return the (possibly-empty) interval obtained by intersecting the arguments"
-
-  interval-union
-;  #:contract (-> interval? interval? interval?)
-;  #:doc "Take the union of two intervals.
-;         If the arguments are disjoint, the result includes the space between them."
-
-  interval-midpoint
-;  #:contract (-> interval? number?)
-;  #:doc "Calculate the point midway between the interval's lower and upper bounds"
-
-  interval-contains?
-;  #:contract (-> interval? number? boolean?)
-;  #:doc "True if the interval contains the second argument."
-
-  interval-translate
-;  #:contract (-> interval? number? interval?)
-;  #:doc "Create a new interval by adding a scalar to the bounds of the given interval"
-)
-
-;; -----------------------------------------------------------------------------
-
 (require
   mechanics
   (for-syntax racket/base syntax/parse)
   (only-in racket/match match-define)
+)
+
+;; -----------------------------------------------------------------------------
+
+(provide
+  ;; Constructor
+  (rename-out
+    [make-interval/check make-interval]
+    ;; (make-interval lo hi lo-closed? hi-closed?)
+    ;; Manually construct an interval from:
+    ;; - a numeric lower bound `lo`
+    ;; - a numeric upper bound `hi`
+    ;; - a boolean `lo-closed?`, indicating whether the lower bound is closed
+    ;; - a boolean `hi-closed?`, indicating whether the upper bound is closed
+    ;; This function will verify the types and ensure the bounds are sensible.
+    ;; i.e. if the upper bound is smaller than the lower, the result is an
+    ;;  empty interval.
+
+    [parse-interval interval]
+    ;; Syntax for creating intervals.
+    ;; There are two alternatives:
+    ;; - Give lower and upper bounds using braces
+    ;;   - (interval ⟦ 0 , 1 ⟧)
+    ;;     Build a closed interval with lower bound 0 and upper bound 1.
+    ;;   - (interval ⟪ 0 , 1 ⟫)
+    ;;     Build an open interval with endpoints 0 and 1.
+    ;;   Mixing square and angle braces defines half-closed intervals.
+    ;;
+    ;; - Give a center value and error tolerance.
+    ;;   - (interval 1 ± 1/4)
+    ;;     Build a closed interval ⟦ 3/4 , 5/4 ⟧
+    ;;   - (interval 1 ± 25 %)
+    ;;     Alternate syntax for `(interval 1 ± 1/4)`
+    ;;   This form only allows symmetric error bounds.
+  )
+  interval?
+  ;; Predicate for interval values
+)
+(provide/api
+  interval-empty?
+  #:contract (-> interval? boolean?)
+  #:doc "True if the argument is an empty interval. False otherwise."
+
+  interval-lo
+  #:contract (-> interval? number?)
+  #:doc "Get the lower bound of an interval, or `#f` if empty."
+
+  interval-hi
+  #:contract (-> interval? number?)
+  #:doc "Get the upper bound on an interval, or `#f` if empty."
+
+  interval-lo-closed?
+  #:contract (-> interval? boolean?)
+  #:doc "True if the interval's lower bound is closed"
+
+  interval-hi-closed?
+  #:contract (-> interval? boolean?)
+  #:doc "True if the interval's upper bound is closed"
+
+  interval-lo-open?
+  #:contract (-> interval? boolean?)
+  #:doc "True if the interval's lower bound is open."
+
+  interval-hi-open?
+  #:contract (-> interval? boolean?)
+  #:doc "True if the intervals' upper bound is open."
+
+  interval-disjoint?
+  #:contract (-> interval? interval? boolean?)
+  #:doc "True if the two intervals do not overlap"
+
+   interval-intersect
+   #:contract (-> interval? interval? interval?)
+   #:doc "Return the (possibly-empty) interval obtained by intersecting the arguments"
+
+  interval-union
+  #:contract (-> interval? interval? interval?)
+  #:doc "Take the union of two intervals.
+         If the arguments are disjoint, the result includes the space between them."
+
+  interval-midpoint
+  #:contract (-> interval? number?)
+  #:doc "Calculate the point midway between the interval's lower and upper bounds"
+
+  interval-contains?
+  #:contract (-> interval? number? boolean?)
+  #:doc "True if the interval contains the second argument."
+
+  interval-translate
+  #:contract (-> interval? number? interval?)
+  #:doc "Create a new interval by adding a scalar to the bounds of the given interval"
+
+  interval-negate
+  #:contract (-> interval? interval?)
+  #:doc "Flip an interval across the zero."
+
+  interval-invert
+  #:contract (-> interval? interval?)
+  #:doc "Take the inverse of an interval, `[1/hi , 1/lo]`.
+         Undefined for intervals that contain zero."
+
+  interval-plus
+  #:contract (-> interval? interval? interval?)
+  #:doc "Add two intervals.
+         The empty interval is the identity."
+
+  interval-minus
+  #:contract (-> interval? interval? interval?)
+  #:doc "Take the difference of two intervals."
+
+  interval-times
+  #:contract (-> interval? interval? interval?)
+  #:doc "Multiply two intervals.
+         The empty interval is the unit."
+
+  interval-divide
+  #:contract (-> interval? interval? interval?)
+  #:doc "Divide one interval by another.
+         Undefined for denominators that contain zero."
 )
 
 ;; =============================================================================
@@ -73,14 +140,62 @@
 
 ;; An interval is a lower and upper bound,
 ;; plus flags to indicate whether each bound is closed or open.
-(struct interval (
-  lo         ;; Real
-  hi         ;; Real, must be >= lo
-  lo-closed? ;; Boolean
-  hi-closed? ;; Boolean
-) #:transparent)
+(module data racket/base
+  (struct interval (
+    lo         ;; Real
+    hi         ;; Real, must be >= lo
+    lo-closed? ;; Boolean
+    hi-closed? ;; Boolean
+  ) #:transparent)
 
-(define the-empty-interval 'the-empty-interval)
+  ;; The empty interval is closed, by convention
+  (define the-empty-interval 'the-empty-interval)
+
+  (define (interval?/empty ivl)
+    (or (interval? ivl)
+        (and (symbol? ivl) (eq? ivl the-empty-interval))))
+
+  (define (interval-empty? ivl)
+    (eq? ivl the-empty-interval))
+
+  (define (interval-lo/empty ivl)
+    (and (not (interval-empty? ivl))
+         (interval-lo ivl)))
+
+  (define (interval-hi/empty ivl)
+    (and (not (interval-empty? ivl))
+         (interval-hi ivl)))
+
+  (define (interval-lo-closed?/empty ivl)
+    (or (interval-empty? ivl)
+        (interval-lo-closed? ivl)))
+
+  (define (interval-hi-closed?/empty ivl)
+    (or (interval-empty? ivl)
+        (interval-hi-closed? ivl)))
+
+  (define (interval-lo-open?/empty ivl)
+    (and (not (interval-empty? ivl))
+         (not (interval-lo-closed? ivl))))
+
+  (define (interval-hi-open?/empty ivl)
+    (and (not (interval-empty? ivl))
+         (not (interval-hi-closed? ivl))))
+
+  (provide
+    interval
+    the-empty-interval
+    interval-empty?
+    (rename-out
+      [interval?/empty interval?]
+      [interval-lo/empty interval-lo]
+      [interval-hi/empty interval-hi]
+      [interval-lo-closed?/empty interval-lo-closed?]
+      [interval-hi-closed?/empty interval-hi-closed?]
+      [interval-lo-open?/empty   interval-lo-open?]
+      [interval-hi-open?/empty   interval-hi-open?]))
+)
+(require (submod "." data))
 
 (define-syntax-rule (constructor-error msg arg* ...)
   (error 'interval (format msg arg* ...)))
@@ -123,15 +238,6 @@
     [_ (error 'interval "Could not parse syntax, expected an interval delimited by angle braces, got '~a'\n" stx)]))
 
 ;; =============================================================================
-
-(define (interval-empty? ivl)
-  (eq? ivl the-empty-interval))
-
-(define (interval-lo-open? ivl)
-  (not (interval-lo-closed? ivl)))
-
-(define (interval-hi-open? ivl)
-  (not (interval-hi-closed? ivl)))
 
 (define (interval-disjoint? ivl1 ivl2)
   ;; Two intervals are disjoint if:
@@ -314,13 +420,36 @@
   (check-equal? (parse-interval 3 ± 10 %) (parse-interval ⟦ 27/10 , 33/10 ⟧))
   (check-equal? (parse-interval 91 ± 1 %) (parse-interval ⟦ 9009/100 , 9191/100 ⟧))
 
+  ;; Accessors
+  ;; -- interval?
+  (check-true (interval? (interval 0 1 #t #t)))
+  (check-true (interval? the-empty-interval))
+  (check-false (interval? 'nope))
+  (check-false (interval? 42))
+  (check-false (interval? (lambda (x) x)))
 
-  ;; Utilities
   ;; -- interval-empty?
   (check-true (interval-empty? the-empty-interval))
   (check-false (interval-empty? (interval 0 1 #t #t)))
   (check-false (interval-empty? (interval 0 0 #f #f)))
   (check-false (interval-empty? (interval 1/421 1 #f #t)))
+
+  ;; -- interval-lo
+  (check-equal? (interval-lo (interval 0 1 #t #t)) 0)
+  (check-equal? (interval-lo the-empty-interval) #f)
+
+  ;; -- interval-hi
+  (check-equal? (interval-hi (interval 0 1 #t #t)) 1)
+  (check-equal? (interval-hi the-empty-interval) #f)
+
+  ;; -- interval-*-closed?
+  (check-true (interval-lo-closed? the-empty-interval))
+  (check-true (interval-lo-closed? (interval 0 1 #t #f)))
+  (check-false (interval-lo-closed? (interval 0 1 #f #t)))
+
+  (check-true (interval-hi-closed? the-empty-interval))
+  (check-true (interval-hi-closed? (interval 0 1 #f #t)))
+  (check-false (interval-hi-closed? (interval 0 1 #t #f)))
 
   ;; -- interval-*-open?
   (check-true (interval-lo-open? (interval 0 1 #f #f)))
@@ -331,6 +460,11 @@
   (check-false (interval-lo-open? (interval 0 1 #t #t)))
   (check-false (interval-hi-open? (interval 0 1 #f #t)))
   (check-false (interval-hi-open? (interval 0 1 #t #t)))
+
+  (check-false (interval-lo-open? the-empty-interval))
+  (check-false (interval-hi-open? the-empty-interval))
+
+  ;; Utilities
 
   ;; -- interval-disjoint?
   (check-true (interval-disjoint? (interval 0 1 #t #f) the-empty-interval))
