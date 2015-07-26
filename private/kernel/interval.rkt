@@ -1,15 +1,14 @@
 #lang racket/base
 
 ;; Utilities for working with subsets of the real line.
+;; Alternatively, for representing data points that have a tolerance.
 
 ;; The `plot-lib` library's `common/math.rkt` gives a similar abstraction
+;; for closed intervals
 
 ;; Missing from scmutils
 ;; - canonical form for lists of intervals
 ;;   (arranged from lowest lo bound upward, all intervals disjoint)
-;; - Arithmetic + - * / for intervals
-;;   (not implemented because I don't understand the need,
-;;    [a, b] + [c, d] = [a+c, b+d])
 
 (provide
   ;; Constructor
@@ -105,7 +104,7 @@
 ;; (#lang mechanics)
 (define-syntax (parse-interval stx)
   ;; Do NOT check `lo:number`, let `make-interval/check` test & raise the error
-  (syntax-parse stx #:datum-literals (⟪ ⟫ ⟦ ⟧)
+  (syntax-parse stx #:datum-literals (⟪ ⟫ ⟦ ⟧ ± %)
     [(_ ⟪ lo , hi ⟫)
      #'(make-interval/check lo hi #f #f)]
     [(_ ⟪ lo , hi ⟧)
@@ -114,6 +113,13 @@
      #'(make-interval/check lo hi #t #f)]
     [(_  ⟦ lo , hi ⟧)
      #'(make-interval/check lo hi #t #t)]
+    ;; Number & tolerance
+    [(_ center ± width)
+     #'(make-interval/check (- center width) (+ center width) #t #t)]
+    ;; Number & percentage
+    [(ivl center ± pct %)
+     #'(ivl center ± (* center (/ pct 100)))]
+     ;#'(make-interval/check (- center width) (+ center width))]
     [_ (error 'interval "Could not parse syntax, expected an interval delimited by angle braces, got '~a'\n" stx)]))
 
 ;; =============================================================================
@@ -229,7 +235,7 @@
 (module+ test
   (require rackunit)
 
-  ;; Constructors ⟪ ⟫ ⟦ ⟧
+  ;; Constructors
   (check-equal? (parse-interval ⟪ 0 , 1 ⟫) (interval 0 1 #f #f))
   (check-equal? (parse-interval ⟪ 0 , 1 ⟧) (interval 0 1 #f #t))
   (check-equal? (parse-interval ⟦ 0 , 1 ⟫) (interval 0 1 #t #f))
@@ -240,6 +246,13 @@
   (check-equal? (parse-interval ⟦ 0 , 0 ⟫) (interval 0 0 #t #f))
   (check-equal? (parse-interval ⟦ 0 , 0 ⟧) (interval 0 0 #t #t))
   (check-equal? (parse-interval ⟪ 1 , 0 ⟫) the-empty-interval)
+
+  (check-equal? (parse-interval 0.5 ± 0.5) (parse-interval ⟦ 0.0 , 1.0 ⟧))
+  (check-equal? (parse-interval 0 ± 0.1) (parse-interval ⟦ -0.1 , 0.1 ⟧))
+  (check-equal? (parse-interval 17 ± 1/3) (parse-interval ⟦ (- 17 1/3) , (+ 17 1/3) ⟧))
+  (check-equal? (parse-interval 3 ± 10 %) (parse-interval ⟦ 27/10 , 33/10 ⟧))
+  (check-equal? (parse-interval 91 ± 1 %) (parse-interval ⟦ 9009/100 , 9191/100 ⟧))
+
 
   ;; Utilities
   ;; -- interval-empty?
