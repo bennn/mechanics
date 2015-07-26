@@ -230,6 +230,67 @@
                (interval-lo-closed? ivl)
                (interval-hi-closed? ivl))]))
 
+;; These arithmetic operations make sense for closed intervals representing
+;; error tolerance around a center point.
+
+(define (interval-plus ivl1 ivl2)
+  (cond
+    [(interval-empty? ivl1)
+     ivl2]
+    [(interval-empty? ivl2)
+     ivl1]
+    [else
+     (interval (+ (interval-lo ivl1) (interval-lo ivl2))
+               (+ (interval-hi ivl1) (interval-hi ivl2))
+               (and (interval-lo-closed? ivl1)
+                    (interval-lo-closed? ivl2))
+               (and (interval-hi-closed? ivl1)
+                    (interval-hi-closed? ivl2)))]))
+
+;; Swap the lower & upper bounds
+(define (interval-negate ivl)
+  (if (interval-empty? ivl)
+    ivl
+    (interval (- (interval-hi ivl))
+              (- (interval-lo ivl))
+              (interval-hi-closed? ivl)
+              (interval-lo-closed? ivl))))
+
+(define (interval-minus ivl1 ivl2)
+  (interval-plus ivl1 (interval-negate ivl2)))
+
+(define (interval-times ivl1 ivl2)
+  (cond
+    [(interval-empty? ivl1)
+     the-empty-interval]
+    [(interval-empty? ivl2)
+     the-empty-interval]
+    [else
+     (match-define (interval lo1 hi1 lc1 hc1) ivl1)
+     (match-define (interval lo2 hi2 lc2 hc2) ivl2)
+     (define closed-approx (and lc1 hc1 lc2 hc2))
+     (define-values (p1 p2 p3 p4)
+       (values (* lo1 lo2) (* lo1 hi2) (* hi1 lo2) (* hi1 hi2)))
+     (interval (min p1 p2 p3 p4)
+               (max p1 p2 p3 p4)
+               closed-approx
+               closed-approx)]))
+
+(define (interval-invert ivl)
+  (cond
+    [(interval-empty? ivl)
+     ivl]
+    [(interval-contains? ivl 0)
+     (error 'interval "Cannot invert intervals that contain 0")]
+    [else
+      (interval (/ (interval-hi ivl))
+                (/ (interval-lo ivl))
+                (interval-hi-closed? ivl)
+                (interval-lo-closed? ivl))]))
+
+(define (interval-divide ivl1 ivl2)
+  (interval-times ivl1 (interval-invert ivl2)))
+
 ;; =============================================================================
 
 (module+ test
@@ -342,5 +403,48 @@
   (check-equal? (interval-translate the-empty-interval 121) the-empty-interval)
   (check-equal? (interval-translate (interval 0 10 #f #t) 4) (interval 4 14 #f #t))
   (check-equal? (interval-translate (interval 1/4 1/7 #t #f) -1/3) (interval -1/12 -4/21 #t #f))
+
+  ;; -- interval-plus
+  (define-syntax (binop-test* stx)
+    (syntax-parse stx #:datum-literals (== ±)
+      [(_ op [(c1 ± w1) (c2 ± w2) == (c3 ± w3)] ...)
+       #'(begin (check-equal? (op (parse-interval c1 ± w1) (parse-interval c2 ± w2)) (parse-interval c3 ± w3)) ...)]))
+
+  (binop-test* interval-plus
+    [(1 ± 0.2) (1 ± 0.2) == (2 ± 0.4)]
+    [(1/3 ± 0) (1/3 ± 0) == (2/3 ± 0)]
+    [(-6 ± 1) (2 ± 1/5) == (-4 ± 6/5)]
+  )
+  (let ([i (interval 1/7 2/3 #f #t)])
+    (check-equal? (interval-plus the-empty-interval i) i)
+    (check-equal? (interval-plus i the-empty-interval) i))
+
+  (check-equal? (interval-negate the-empty-interval) the-empty-interval)
+  (check-equal? (interval-negate (interval 6.12 99/2 #f #t)) (interval -99/2 -6.12 #t #f))
+
+  (binop-test* interval-minus
+    [(1 ± 1/5) (1 ± 1/5) == (0 ± 2/5)]
+    [(-2/11 ± 1/2) (1 ± 1/9) == (-13/11 ± 11/18)]
+  )
+  (let ([i (interval -6 -1/3 #t #f)])
+    (check-equal? (interval-minus i the-empty-interval) i)
+    (check-equal? (interval-minus the-empty-interval i) (interval-negate i)))
+
+  (binop-test* interval-times
+    [(1 ± 1) (1 ± 1) == (2 ± 2)]
+    [(2 ± 2) (2 ± 2) == (8 ± 8)]
+    [(-1 ± 1/4) (1 ± 1/4) == (-17/16 ± 1/2)]
+  )
+  (let ([i (interval -6 -1/3 #t #f)])
+    (check-equal? (interval-times i the-empty-interval) the-empty-interval)
+    (check-equal? (interval-times the-empty-interval i) the-empty-interval))
+
+  (binop-test* interval-divide
+    [(1 ± 0) (1 ± 0) == (1 ± 0)]
+    [(1 ± 1/2) (1 ± 1/2) == (5/3 ± 4/3)]
+  )
+  (let ([i (interval -6 -1/3 #t #f)])
+    (check-equal? (interval-divide i the-empty-interval) the-empty-interval)
+    (check-equal? (interval-divide the-empty-interval i) the-empty-interval))
 
 )
