@@ -20,11 +20,11 @@
   exp2 exp10
   ;; (expN m) computes (expt N m)
 
-  Sigma
+  Sigma Σ
   ;; Generalized sum.
   ;; `(Sigma f lo hi)` sums `(f i)` for all `i` between `lo` and `hi`, inclusive
 
-  Pi
+  Pi Π
   ;; Generalized product.
   ;; `(Pi f lo hi)` multiplies `(f i)` for all `i` between `lo` and `hi`, inclusive
 )
@@ -65,10 +65,12 @@
 (define (Sigma f lo hi)
   (for/sum ([i (in-range lo (add1 hi))])
     (f i)))
+(define Σ Sigma)
 
 (define (Pi f lo hi)
   (for/product ([i (in-range lo (add1 hi))])
     (f i)))
+(define Π Pi)
 
 ;; =============================================================================
 
