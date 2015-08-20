@@ -12,6 +12,8 @@
 (require
   (only-in mechanics/private/kernel/vector
     vector-dot-product)
+  (only-in mechanics/private/numerics/quadrature
+    definite-integral)
 )
 
 ;; =============================================================================
@@ -19,7 +21,6 @@
 
 (define up list)
 (define Gamma (lambda (x) (error "Gamma")))
-(define definite-integral (lambda arg* (error "definite-integral")))
 
 ;; =============================================================================
 ;; === 1.4
