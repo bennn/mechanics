@@ -20,13 +20,13 @@
   exp2 exp10
   ;; (expN m) computes (expt N m)
 
-  Sigma Σ
+  \Sigma Σ
   ;; Generalized sum.
-  ;; `(Sigma f lo hi)` sums `(f i)` for all `i` between `lo` and `hi`, inclusive
+  ;; `(Σ f lo hi)` sums `(f i)` for all `i` between `lo` and `hi`, inclusive
 
-  Pi Π
+  \Pi Π
   ;; Generalized product.
-  ;; `(Pi f lo hi)` multiplies `(f i)` for all `i` between `lo` and `hi`, inclusive
+  ;; `(Π f lo hi)` multiplies `(f i)` for all `i` between `lo` and `hi`, inclusive
 )
 
 ;; -----------------------------------------------------------------------------
@@ -56,21 +56,33 @@
 
 ;; =============================================================================
 
+(define *machine-epsilon*
+  (make-parameter (let loop ([e 1.0])
+                    (if (= 1.0 (+ e 1.0)) (* 2 e) (loop (/ e 2))))))
+
 (define (exp2 n)
   (expt 2 n))
 
 (define (exp10 n)
   (expt 10 n))
 
-(define (Sigma f lo hi)
+(define (\Sigma f lo hi)
   (for/sum ([i (in-range lo (add1 hi))])
     (f i)))
-(define Σ Sigma)
+(define Σ \Sigma)
 
-(define (Pi f lo hi)
+(define (\Pi f lo hi)
   (for/product ([i (in-range lo (add1 hi))])
     (f i)))
-(define Π Pi)
+(define Π \Pi)
+
+(define (\approx v1 v2 #:epsilon [eps (*machine-epsilon*)]
+                       #:scale   [scale 1])
+  (let ([v1 (abs v1)] [v2 (abs v2)])
+    (<= (abs (- v1 v2))
+        (* eps
+           (+ (* 0.5 (+ (abs v1) (abs v2))))
+           scale))))
 
 ;; =============================================================================
 
@@ -85,15 +97,26 @@
     (begin (check-equal? (exp10 n) (expt 10 n)) ...))
   (exp10n=expt10n [-2 -1 0 1 2 3 4])
 
-  (check-equal? (Sigma (lambda (x) x) 1 10) (+ 1 2 3 4 5 6 7 8 9 10))
-  (check-equal? (Sigma (lambda (x) x) 0 0) 0)
-  (check-equal? (Sigma (lambda (x) x) 1 1) 1)
-  (check-equal? (Sigma (lambda (x) x) 1 0) 0)
-  (check-equal? (Sigma (lambda (x) (+ 2 x)) 10 12) (+ 12 13 14))
+  (check-equal? (\Sigma (lambda (x) x) 1 10) (+ 1 2 3 4 5 6 7 8 9 10))
+  (check-equal? (\Sigma (lambda (x) x) 0 0) 0)
+  (check-equal? (\Sigma (lambda (x) x) 1 1) 1)
+  (check-equal? (\Sigma (lambda (x) x) 1 0) 0)
+  (check-equal? (\Sigma (lambda (x) (+ 2 x)) 10 12) (+ 12 13 14))
 
-  (check-equal? (Pi (lambda (x) x) 1 10) (* 1 2 3 4 5 6 7 8 9 10))
-  (check-equal? (Pi (lambda (x) x) 0 0) 0)
-  (check-equal? (Pi (lambda (x) x) 2 2) 2)
-  (check-equal? (Pi (lambda (x) x) 2 1) 1)
-  (check-equal? (Pi (lambda (x) 4) 0 4) (expt 4 5))
+  (check-equal? (\Pi (lambda (x) x) 1 10) (* 1 2 3 4 5 6 7 8 9 10))
+  (check-equal? (\Pi (lambda (x) x) 0 0) 0)
+  (check-equal? (\Pi (lambda (x) x) 2 2) 2)
+  (check-equal? (\Pi (lambda (x) x) 2 1) 1)
+  (check-equal? (\Pi (lambda (x) 4) 0 4) (expt 4 5))
+
+  (check-false (\approx 0 2))
+  (check-false (\approx 0 2 #:epsilon 0.4))
+  (check-false (\approx 0.1 0))
+  (check-false (\approx 1/3 2/3))
+
+  (check-true  (\approx 3 3))
+  (check-true  (\approx 0 2 #:epsilon 2))
+  (check-true  (\approx 0 2 #:epsilon 1 #:scale 2))
+  (check-true  (\approx -10 10 #:epsilon 20))
+  (check-true  (\approx (exact->inexact 1/3) (exact->inexact 1/3)))
 )
