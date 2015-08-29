@@ -188,7 +188,6 @@
 ;  (require rackunit)
 ;
 ;  ;; -- bug in SICM: this should be pi, but converges too slowly
-;  ;; -- ... I do not like the use of symbols
 ;  ;(* 2
 ;  ;   ((make-definite-integrator
 ;  ;     (lambda->numerical-procedure
