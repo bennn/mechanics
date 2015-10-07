@@ -46,10 +46,11 @@
    [π/12 flonum?]
    [2/π flonum?]
    [3π/2 flonum?]
-   [3π/4 flonum?]
-   [machine-ε flonum?])
+   [3π/4 flonum?])
 
-  *machine-epsilon*
+ 
+  *machine-ε*
+  (rename-out [*machine-ε* *machine-epsilon*])
 )
 
 ;; -----------------------------------------------------------------------------
@@ -114,17 +115,12 @@
 (define 3π/2 (/ (* 3 π) 2))
 (define 3π/4 (* 3 π/4))
 
-(begin-for-syntax
- (define (find-machine-ε ε)
+(define-for-syntax (find-machine-ε ε)
   (if (= 1.0 (+ ε 1.0))
       (* 2 ε)
-      (find-machine-ε (/ ε 2)))))
-
-(define-syntax (machine-ε₀ stx)
-  #`#,(find-machine-ε 1.0))
-
-(define machine-ε (machine-ε₀))
-(define *machine-epsilon* machine-ε)
+      (find-machine-ε (/ ε 2))))
+(define-syntax (machine-ε stx) #`#,(find-machine-ε 1.0))
+(define *machine-ε* (make-parameter (machine-ε)))
 
 ;; =============================================================================
 
