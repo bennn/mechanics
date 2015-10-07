@@ -6,8 +6,11 @@
 
 ;; The contents of this file will eventually live somewhere else,
 ;; and 'main.rkt' will just be the library's API.
+(require racket/contract)
 
 (provide
+  ;; --- MACROS
+
   provide/api
   ;; An optional `provide` form for identifiers that requires a contract and
   ;;  docstring. Desugars to a `contract-out` for the identifier.
@@ -17,8 +20,12 @@
   (all-from-out racket/contract/base)
   ;; Re-export, for `provide/api` to work.
 
+  ;; --- FUNCTIONS
   exp2 exp10
   ;; (expN m) computes (expt N m)
+
+  square
+  ;; Multiply a number by itself
 
   Sigma Σ
   ;; Generalized sum.
@@ -27,6 +34,22 @@
   Pi Π
   ;; Generalized product.
   ;; `(Pi f lo hi)` multiplies `(f i)` for all `i` between `lo` and `hi`, inclusive
+
+  ;; --- CONSTANTS
+  (contract-out
+   [π flonum?]
+   [2π flonum?]
+   [π/2 flonum?]
+   [π/3 flonum?]
+   [π/4 flonum?]
+   [π/6 flonum?]
+   [π/12 flonum?]
+   [2/π flonum?]
+   [3π/2 flonum?]
+   [3π/4 flonum?]
+   [machine-ε flonum?])
+
+  *machine-epsilon*
 )
 
 ;; -----------------------------------------------------------------------------
@@ -37,6 +60,8 @@
   racket/base
   syntax/parse
   (only-in unstable/sequence in-syntax)))
+
+(require (only-in racket/math pi))
 
 ;; =============================================================================
 
@@ -72,6 +97,35 @@
     (f i)))
 (define Π Pi)
 
+(define (square x) (* x x))
+
+;; =============================================================================
+;;
+;; Constants & Parameters
+
+(define π pi)
+(define 2π (* 2 π))
+(define π/2 (/ π 2))
+(define π/3 (/ π 3))
+(define π/4 (/ π 4))
+(define π/6 (/ π 6))
+(define π/12 (/ π 12))
+(define 2/π (/ 2 π))
+(define 3π/2 (/ (* 3 π) 2))
+(define 3π/4 (* 3 π/4))
+
+(begin-for-syntax
+ (define (find-machine-ε ε)
+  (if (= 1.0 (+ ε 1.0))
+      (* 2 ε)
+      (find-machine-ε (/ ε 2)))))
+
+(define-syntax (machine-ε₀ stx)
+  #`#,(find-machine-ε 1.0))
+
+(define machine-ε (machine-ε₀))
+(define *machine-epsilon* machine-ε)
+
 ;; =============================================================================
 
 (module+ test
@@ -97,3 +151,4 @@
   (check-equal? (Pi (lambda (x) x) 2 1) 1)
   (check-equal? (Pi (lambda (x) 4) 0 4) (expt 4 5))
 )
+
