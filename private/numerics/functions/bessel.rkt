@@ -1,7 +1,8 @@
 #lang racket/base
 
 ;; This module defines the bessel functions of integer order
-(require racket/contract/base)
+(require racket/contract/base
+         plot)
 (provide
  (contract-out
   [bessj₀ (-> number? number?)]
@@ -9,7 +10,7 @@
   [bessj  (-> integer? number? number?)]
   [bessy₀ (-> number? number?)]
   [bessy₁ (-> number? number?)]
-  [bessy  (-> integer? number? number?)]
+  [bessy  (-> integer? positive? number?)]
   [bessh₀ (-> number? complex?)]
   [bessh₁ (-> number? complex?)]
   [bessh  (-> integer? number? complex?)]))
@@ -106,6 +107,65 @@
              (- (* (cos ax-π/4) p₀)
                 (* z (sin ax-π/4) q₀)))))))
 
+(define (bessj1 x)
+  (let ((ax (magnitude x)))
+    (if (< ax 8.0)			;Jone 6045
+	(let ((y (* x x)))
+	  (/ (* x
+		(poly-by-coeffs->value y
+		  +.695364226329838502166085207e+8
+		  -.8356785487348914291918495672e+7
+		  +.3209027468853947029888682298e+6
+		  -.58787877666568200462723094e+4
+		  +.6121876997356943874446879769e+2
+		  -.3983107983952332023421699105e+0
+		  +.1705769264349617107854016566e-2
+		  -.4910599276555129440130592573e-5
+		  +.9382193365140744507653268479e-8
+		  -.1107352224453730633782671362e-10
+		  +.63194310317443161294700346e-14))
+	     (poly-by-coeffs->value y
+	       +.139072845265967685120764336e+9
+	       +.6705346835482299302199750802e+6
+	       +.1284593453966301898121332163e+4
+	       +.1e+1)))
+	(let* ((z (/ 8.0 ax))
+	       (y (* z z))
+	       (xx (- ax 3π/4))
+	       (p1			;Pone 6747
+		(/ (poly-by-coeffs->value y
+		     +.1290918471896188077350689e+5
+		     +.1309042051103506486292571e+5
+		     +.313275295635506951011069e+4
+		     +.17431379748379024599685e+3
+		     +.122850537643590432633e+1)
+		   (poly-by-coeffs->value y
+		     +.1290918471896187879332737e+5
+		     +.1306678308784402036110575e+5
+		     +.310928141677002883350924e+4
+		     +.16904721775008609992033e+3
+		     +.1e+1)))
+	       (q1			;Qone 7147
+		(/ (poly-by-coeffs->value y
+		    ;+.14465282874995208675225e+3        ;This line or the next is in error
+		     +.14465282874995208765225e+3
+		     +.1744291689092425885102e+3
+		     +.5173653281836591636536e+2
+		     +.379944537969806734901e+1
+		     +.36363466476034710809e-1)
+		   (poly-by-coeffs->value y
+		     +.308592701333231723110639e+4
+		     +.373434010601630179517765e+4
+		     +.11191098527047487025919e+4
+		     +.8522392064341340397334e+2
+		     +.1e+1)))
+	       (ans
+		(* (sqrt (/ 2/π ax))
+		   (- (* (cos xx) p1)
+		      (* z (sin xx) q1)))))
+	  (if (< x 0.0)
+	      (- ans)
+	      ans)))))
 
 (define (bessj₁ x)
   (let ([ax (magnitude x)])
@@ -174,48 +234,81 @@
   (define bigno 1.0e10)
   (define bigni 1.0e-10)
   (cond
-   [(fx= n 0) (bessj₀ x)]
-   [(fx= n 1) (bessj₁ x)]
-   [(= x 0.0) 0.0]
-   [(< x 0.0) (if (even? n)
-                  (bessj n (- x))
-                  (- (bessj n (- x))))]
-   [(fx< n 0) (if (even? n)
-                  (bessj (- n) x)
-                  (- (bessj (- n) x)))]
-   [else
-    (define ax (magnitude x))
-    (define 2/ax (/ 2.0 ax))
-    (if (> ax n)
-        (let-values ([(bjm bj)
-                      (for/fold ([bjm (bessj₀ ax)]
-                                 [bj (bessj₁ ax)])
-                          ([j (in-range n)])
-                        (values bj (- (* j 2/ax bj) bjm)))])
-          (if (and (< x 0) (odd? n)) (- bj) bj))
-        (let*-values ([(start) (round-to-even (+ n (sqrt (* acc n))))]
-                      [(bj bjp ans sum)
-                       (for/fold ([bj  1]
-                                  [bjp 0]
-                                  [ans 0]
-                                  [sum 0])
-                           ([j (in-range start 0 -1)])
-                         (let* ([bjm (- (* j 2/ax bj) bj)]
-                                [next-values (list bjm bj ans sum)])
-                           (when (> (magnitude bjm) bigno)
-                             (for ([v (in-list next-values)])
-                               (set! v (* v bigni))))
-                           (when (odd? j)
-                             (set! sum (+ sum bjm)))
-                           (when (fx= j n)
-                             (set! ans bj))
-                           (apply values next-values)))]
-                      [(out) (/ ans (* 2 sum) bj)])
-         (if (and (< x 0) (odd? n)) (- ans) ans)))]))
+    [(fx= n 0) (bessj₀ x)]
+    [(fx= n 1) (bessj₁ x)]
+    [(= x 0.0) 0.0]
+    [(< x 0.0) (if (even? n)
+                   (bessj n (- x))
+                   (- (bessj n (- x))))]
+    [(fx< n 0) (if (even? n)
+                   (bessj (- n) x)
+                   (- (bessj (- n) x)))]
+    [else
+     (define ax (magnitude x))
+     (define 2/ax (/ 2.0 ax))
+     (if (> ax n)
+         (let-values ([(bjm bj)
+                       (for/fold ([bjm (bessj₀ ax)]
+                                  [bj (bessj₁ ax)])
+                                 ([j (in-range 1 n)])
+                         (values bj (- (* j 2/ax bj) bjm)))])
+           (if (and (< x 0) (odd? n)) (- bj) bj))
+         (let ((m (round-to-even (+ n (sqrt (* acc n)))))
+               (bj 1.0)
+               (bjp 0.0)
+               (ans 0.0)
+               (sum 0.0))
+           (let lp ((j m))
+             (if (fx= j 0)
+                 (let ((ans (/ ans (- (* 2.0 sum) bj))))
+                   (if (and (< x 0.0) (odd? n)) (- ans) ans))
+                 (let ((bjm (- (* j 2/ax bj) bjp)))
+                   (set! bjp bj)
+                   (set! bj bjm)
+                   (when (> (magnitude bj) bigno)
+                     (begin (set! bj (* bj bigni))
+                            (set! bjp (* bjp bigni))
+                            (set! ans (* ans bigni))
+                            (set! sum (* sum bigni))))
+                   (when (odd? j)
+                     (set! sum (+ sum bj)))
+                   (when (fx= j n)
+                     (set! ans bjp))
+                   (lp (fx- j 1)))))))]))
+
+;; NOTE: below was the attempted refactor of the above. For some reason
+;; this didn't work.
+;;
+;; TODO: attempt another refactor maybe using below as a starting point
+;;
+;; (let*-values ([(start) (round-to-even (+ n (sqrt (* acc n))))]
+;;                       [(bj bjp ans sum)
+;;                        (for/fold ([bj  1]
+;;                                   [bjp 0]
+;;                                   [ans 0]
+;;                                   [sum 0])
+;;                            ([j (in-range start -1 -1)])
+;;                          (let* ([bjm (- (* j 2/ax bj) bj)])
+;;                            (set! bjp bj)
+;;                            (set! bj bjm)
+;;                            (when (> (magnitude bj) bigno)
+;;                              (set! bj (* bj bigni))
+;;                              (set! bjp (* bjp bigni))
+;;                              (set! ans (* ans bigni))
+;;                              (set! sum (* sum bigni)))
+;;                            (when (odd? j)
+;;                              (set! sum (+ sum bjm)))
+;;                            (when (fx= j n)
+;;                              (set! ans bj))
+;;                            (values bj bjp ans sum)))]
+;;                       [(out) (/ ans (* 2 sum) bj)])
+;;           (displayln (format "x: ~a, start: ~a, out: ~a"
+;;                              x start out))
+;;           (if (and (< x 0) (odd? n)) (- out) out))
 
 (define (bessy₀ x)
-  (define |x| (magnitude x))
-  (if (< |x| 8.0)
+  (define ax (magnitude x))
+  (if (< ax 8.0)
       (let* ([x² (* x x)]
              [r₀ (poly-by-coeffs->value
                   x²
@@ -241,9 +334,9 @@
                   )])
         (+ (/ r₀ s₀)
            (* 2/π (bessj₀ x) (log x))))
-      (let* ([z (/ 8.0 |x|)]
+      (let* ([z (/ 8.0 ax)]
              [z² (* z z)]
-             [|x|-π/4 (- |x| π/4)]
+             [ax-π/4 (- ax π/4)]
              [p₀ (/ (poly-by-coeffs->value
                      z²
                      +.8554822541506661710252074e+4
@@ -272,92 +365,83 @@
 		     +.921566975526530895082307e+3
 		     +.74428389741411178824152e+2
 		     +.1e1))])
-        (* (sqrt (/ 2/π |x|))
-           (+ (* (sin |x|-π/4) p₀)
-              (* z (cos |x|-π/4) q₀))))))
+        (* (sqrt (/ 2/π ax))
+           (+ (* (sin ax-π/4) p₀)
+              (* z (cos ax-π/4) q₀))))))
 
 (define (bessy₁ x)
-  (define |x| (magnitude x))
-  (if (< |x| 8.0)
-      (let* ([x² (* x x)]
-             [r₀ (poly-by-coeffs->value
-                  x²
-                  -.2493247725431151099221863985e+8  ;p00
-                  +.678814979608784027013965029e+7   ;p01
-                  -.3418758685257648961162234201e+6  ;p02
-                  +.731876663732252704384675659e+4   ;p03
-                  -.8477929772037826827977473917e+2  ;p04
-                  +.5973109455969101918912869725e+0  ;p05
-                  -.2723714918114737334647812804e-2  ;p06
-                  +.8253358475754237969740284405e-5  ;p07
-                  -.1645797675540583390670878295e-7  ;p08
-                  +.2013974632712911344982964612e-10 ;p09
-                  -.118503924369772697029706524e-13  ;p10
-                  )]
-             [s₀ (poly-by-coeffs->value
-                  x²
-                  +.1271694748306711445338693265e+9  ;q00
-                  +.6291245810783959009675422035e+6  ;q01
-                  +.1241151964683171602676430057e+4  ;q02
-                  +1.0                               ;q03
-                  )])
-        (+ (/ (* x r₀) s₀)
-           (* 2/π
-              (- (* (bessj₁ x) (log x))
-                 (/ 1.0 x)))))
-      (let* ([z (/ 8.0 |x|)]
-             [z² (* z z)]
-             [|x|-3π/4 (- |x| 3π/4)]
-             [p₁ (/ (poly-by-coeffs->value
-                     z²
-                     +.1290918471896188077350689e+5
-		     +.1309042051103506486292571e+5
-		     +.313275295635506951011069e+4
-		     +.17431379748379024599685e+3
-		     +.122850537643590432633e+1)
-                    (poly-by-coeffs->value
-                     z²
-                     +.1290918471896187879332737e+5
-		     +.1306678308784402036110575e+5
-		     +.310928141677002883350924e+4
-		     +.16904721775008609992033e+3
-		     +.1e+1))]
-             [q₁ (/ (poly-by-coeffs->value
-                     z²
-                     +.14465282874995208675225e+3
-		     +.1744291689092425885102e+3
-		     +.5173653281836591636536e+2
-		     +.379944537969806734901e+1
-		     +.36363466476034710809e-1)
-                    (poly-by-coeffs->value
-                     z²
-                     +.308592701333231723110639e+4
-		     +.373434010601630179517765e+4
-		     +.11191098527047487025919e+4
-		     +.8522392064341340397334e+2
-		     +.1e+1))])
-        (* (sqrt (/ 2/π |x|))
-           (+ (* (sin |x|-3π/4) p₁)
-              (* z (cos |x|-3π/4) q₁))))))
+  (let [(ax (magnitude x))]
+    (if (< ax 8)
+        (let* [(x² (* x x))
+              (r₀
+               (poly-by-coeffs->value
+                x²
+                -0.4900604943e13
+                +0.1275274390e13
+                -0.5153438139e11
+                +0.7349264551e9
+                -0.4237922726e7
+                +0.8511937935e4))
+              (s₀
+               (poly-by-coeffs->value
+                x²
+                +0.2499580570e14
+                +0.4244419664e12
+                +0.3733650367e10
+                +0.2245904002e8
+                +0.1020426050e6
+                +0.3549632885e3
+                +1.0))]
+          (+ (/ (* x r₀)
+                s₀)
+             (* 2/π
+                (- (* (bessj₁ x)
+                      (log x))
+                   (/ 1 x)))))
+        (let* [(z (/ 8 x))
+               (z² (* z z))
+               (ax-3π/4 (- ax 3π/4))
+               (p₀
+                (poly-by-coeffs->value
+                 z²
+                 +1.0
+                 +0.183105e-2
+                 -0.3516396496e-4
+                 +0.2457520174e-5
+                 -0.240337019e-6))
+               (q₀
+                (poly-by-coeffs->value
+                 z²
+                 +0.04687499995
+                 -0.2002690873e-3
+                 +0.8449199096e-5
+                 -0.88228987e-6
+                 +0.105787412e-6))]
+          (* (sqrt (/ 2/π ax))
+             (+ (* (sin ax-3π/4)
+                   p₀)
+                (* z
+                   (cos ax-3π/4)
+                   q₀)))))))
 
 (define (bessy n x)
   (cond
-   [(fx= n 0) (bessy₀ x)]
-   [(fx= n 1) (bessy₁ x)]
-   [(not (> x 0))
-    (error "Argument out of range – Bessel Y" n x)]
-   [else
-    (let lp ([i 1]
-             [yₙ (bessy₁ x)]
-             [yₚ (bessy₀ x)])
-      (if (fx= i n)
-          yₙ
-          (lp (fx+ i 1)
-              (- (/ (* 2 i yₙ) x)
-                 yₚ))))]))
+    [(fx= n 0) (bessy₀ x)]
+    [(fx= n 1) (bessy₁ x)]
+    [(fx< n 0)
+     (if (even? n)
+         (bessy (- n) x)
+         (- (bessy (- n) x)))]
+    [else
+     (let lp ((i 1) (yn (bessy₁ x)) (yn-1 (bessy₀ x)))
+       (if (fx= i n)
+           yn
+           (lp (fx+ i 1)
+               (- (/ (* 2 i yn) x) yn-1)
+               yn)))]))
+
 
 ;; Hankel functions H¹
-
 (define (bessh n x)
   (+ (bessj n x)
      (* +i (bessy n x))))
