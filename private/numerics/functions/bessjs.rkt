@@ -67,7 +67,7 @@
 (module+ test
   (require rackunit
            rackunit/text-ui
-           (only-in mechanics π/2 π 3π/2 2π machine-ε)
+           (only-in mechanics π/2 π 3π/2 2π)
            (only-in math/matrix
                     matrix
                     vector*->matrix

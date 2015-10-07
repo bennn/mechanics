@@ -21,14 +21,14 @@
           fl*
           fl-))
 
-(require (only-in mechanics π π/2 machine-ε))
+(require (only-in mechanics π π/2 *machine-ε*))
 
 (define (first-elliptic-integral k)
   (let loop ([a 1.0]
              [b (flsqrt (fl- 1.0
                              (fl* k k)))]
              [c k])
-    (if (fl< (flabs c) (* 2.0 machine-ε))
+    (if (fl< (flabs c) (* 2.0 (*machine-ε*)))
         (fl/ π/2 a)
         (loop (fl/ (fl+ a b) 2.0)
               (flsqrt (fl* a b))
@@ -40,7 +40,7 @@
              [c k]
              [d 0.0]
              [powers-2 1.0])
-    (if (fl< (flabs c) (* 2.0 machine-ε))
+    (if (fl< (flabs c) (* 2.0 (*machine-ε*)))
         (let ([first-elliptic-integral (fl/ π/2 a)])
           (cons first-elliptic-integral
                 (fl* first-elliptic-integral

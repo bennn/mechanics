@@ -1,8 +1,7 @@
 #lang racket/base
 
 ;; This module defines the bessel functions of integer order
-(require racket/contract/base
-         plot)
+(require racket/contract/base)
 (provide
  (contract-out
   [bessj₀ (-> number? number?)]

@@ -72,7 +72,7 @@
       number?))
 
 (require
- (only-in mechanics π π/2 square machine-ε))
+ (only-in mechanics π π/2 square *machine-ε*))
 
 (require
  (only-in racket/math cosh tanh))
@@ -81,7 +81,7 @@
  (only-in racket/fixnum fx< fx+))
 
 (define (Rf x y z)
-  (define ε (expt machine-ε 1/6))
+  (define ε (expt (*machine-ε*) 1/6))
   (define C₁ 1/24)
   (define C₂ 1/10)
   (define C₃ 3/44)
@@ -116,7 +116,7 @@
 (define Carlson-elliptic-1 Rf)
 
 (define (Carlson-elliptic₁-simple x y z)
-  (define ε (sqrt machine-ε))
+  (define ε (sqrt (*machine-ε*)))
   (let Rf₁ ([x x]
             [y y]
             [z z])
@@ -136,7 +136,7 @@
 (define Carlson-elliptic-1-simple Carlson-elliptic₁-simple)
 
 (define (Rd x y z)
-  (define ε (sqrt machine-ε))
+  (define ε (sqrt (*machine-ε*)))
   (define C₁ (/ -3. 14.))
   (define C₂ (/ 1. 6.))
   (define C₃ (/ -9. 22.))
@@ -213,7 +213,7 @@
                  [c k]
                  [d 0.0]
                  [powers-2 1.0])
-        (if (< (magnitude c) machine-ε)
+        (if (< (magnitude c) (*machine-ε*))
             (let ([first-elliptic-integral (/ π/2 a)])
               (continue first-elliptic-integral
                         (* first-elliptic-integral
@@ -252,7 +252,7 @@
 
 ;; A battle was fought here. – bkc 06/21/2015
 (define (Jacobi-elliptic-functions u k cont)
-  (define ε (sqrt machine-ε))
+  (define ε (sqrt (*machine-ε*)))
   (define modulus (- 1 (square k)))
 
   (when (= modulus 0)
@@ -329,7 +329,7 @@
      (test-= "first elliptic integral consistent"
              (first-elliptic-integral .9)
              2.2805491384227703
-             machine-ε)
+             (*machine-ε*))
      (test-= "elliptic integral E consistent"
              (elliptic-integral-E 1 .9)
              .8762622199915486
@@ -341,13 +341,13 @@
      (test-= "second elliptic integral consistent"
              (second-elliptic-integral .9)
              1.171697052781614
-             machine-ε)
+             (*machine-ε*))
      (test-= "Jacobi elliptic consistent with sin(1.3369113189159216)"
              (Jacobi-elliptic-functions 1.3369113189159216
                                         0.
                                         (compose car list))
              (sin 1.3369113189159216)
-             machine-ε)
+             (*machine-ε*))
      (test-= "Jacobi elliptic-integral-F identity consistent"
              (Jacobi-elliptic-functions (elliptic-integral-F 1.1 .92)
                                         .92
@@ -363,10 +363,10 @@
        (test-= "Jacobi elliptic integral cn consistent"
                (+ (square x) (square y))
                1
-               machine-ε)
+               (*machine-ε*))
        (test-= "Jacobi elliptic integral dn consistent"
                (sqrt (- 1
                         (* (square .92)
                            (square x))))
                z
-               machine-ε))))))
+               (*machine-ε*)))))))
