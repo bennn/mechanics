@@ -125,9 +125,16 @@
 ;; =============================================================================
 
 (module+ main
-  (require xrepl)
-  (define mechanics-eval (current-eval))
-  (define mechanics-print (current-print))
+  (require xrepl mechanics/private/newton-ascii)
+  (define mechanics-eval  (current-eval))
+  (define mechanics-print
+    (let ([pp (current-print)])
+      (lambda (any)
+        (case any
+         [(SICM)
+          (displayln newton-ascii)]
+         [else
+          (pp any)]))))
   ;; -- 
   (printf "Starting an XREPL session...\n")
   (parameterize ([current-namespace (make-base-namespace)]
