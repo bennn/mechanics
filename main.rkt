@@ -124,6 +124,20 @@
 
 ;; =============================================================================
 
+(module+ main
+  (require xrepl)
+  (define mechanics-eval (current-eval))
+  (define mechanics-print (current-print))
+  ;; -- 
+  (printf "Starting an XREPL session...\n")
+  (parameterize ([current-namespace (make-base-namespace)]
+                 [current-eval      mechanics-eval]
+                 [current-print     mechanics-print])
+    (namespace-require 'mechanics/numerics)
+    (read-eval-print-loop)))
+
+;; =============================================================================
+
 (module+ test
   (require rackunit)
 
