@@ -98,7 +98,9 @@
       (if (exact? obj) 0 0.0))
 
     (define identity-like one-like)
+
     (define zero? base:zero?)
+
     (define (one? obj) (= obj 1))
     (define identity? one?)]))
 
@@ -122,6 +124,7 @@
     (define (negate x) (- x))
     (define (atan x [y #f])
       (if y (base:atan x y) (base:atan y)))
+
     (define (invert x) (/ 1 x))
     
     (define square base:sqr)
@@ -142,6 +145,7 @@
   ([number?
     (define/generic super-= =)
     (define = base:=)
+
     (define (/= x y . zs) (not (apply = (list* x y zs))))]))
 
 (define-generics ordered
