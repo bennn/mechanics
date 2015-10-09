@@ -22,6 +22,8 @@
 (require
  (only-in racket/fixnum fx=))
 
+(provide number-type-tag)
+
 (define (make-type type-tag
                    abstract-type-tag
 		   quantity-predicate
