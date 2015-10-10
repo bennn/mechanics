@@ -1,5 +1,7 @@
 rktutils
 ========
+[![Build Status](https://travis-ci.org/bennn/mechanics.svg)](https://travis-ci.org/bennn/mechanics)
+[![Coverage Status](https://coveralls.io/repos/bennn/mechanics/badge.svg?branch=master&service=github)](https://coveralls.io/github/bennn/mechanics?branch=master)
 
 Racket rendition of SICM's `scmutils` library.
 
