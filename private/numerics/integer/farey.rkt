@@ -10,14 +10,17 @@
 ;; Because the mediants are always between the given fractions
 ;; the levels are ordered if the first one is ordered.
 
-(provide farey)
+(require mechanics)
+(provide/api
+  farey
+  #:contract (-> natural? natural? (-> natural? (listof exact-rational?)))
+  #:doc "Given a lower and upper bound, return a function on naturals `n` that enumerates all fractions between the lower & upper bound with denominators no greater than `n`."
+)
 
 ;; -----------------------------------------------------------------------------
 
 (require
  racket/match
- mechanics
- (only-in racket/math pi sqr)
  (only-in racket/flonum flmax)
  (only-in math/base phi.0)
  (only-in racket/set set
@@ -87,7 +90,7 @@
 
 ;; In the limit as n->infinity the length of the nth Farey sequence is
 (define (farey-length n)
-  (* (/ 3 (sqr pi)) (sqr n)))
+  (* (/ 3 (square pi)) (square n)))
 
 ;; Of course, the computation of the nth Farey sequence by filtering
 ;; the nth level of the Farey tree is horribly inefficient.  There
@@ -144,7 +147,6 @@
         (lp (cdr lst) low x)]
        [else
         (lp (cdr lst) x hi)]))))
-
 
 ;; =============================================================================
 

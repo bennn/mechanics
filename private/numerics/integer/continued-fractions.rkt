@@ -3,15 +3,17 @@
 ;; Continued Fractions stream approximations of real numbers.
 ;; http://en.wikipedia.org/wiki/Continued_fraction
 
-(provide
- ;; (-> Exact-Rational (Streamof Integer))
- ;; Create the continued fraction representation of an exact number.
+(require mechanics)
+(provide/api
  continued-fraction
- ;; (-> (Streamof Integer) (Streamof Exact-Rational))
- ;; Return a stream of approximation to a continued fraction.
- ;; The nth element of the output uses the first n terms of the
- ;; continued fraction.
+ #:contract (-> real? (sequenceof integer?))
+ #:doc "Create the continued fraction representation of a real number."
+
  convergents
+ #:contract (-> (sequenceof integer?) (sequenceof exact-rational?))
+ #:doc "Return a stream of approximation to a continued fraction.
+ The nth element of the output uses the first n terms of the
+ continued fraction."
 )
 
 ;; -----------------------------------------------------------------------------
@@ -19,8 +21,7 @@
 (require
  racket/stream
  (only-in racket/math
-          exact-floor
-          pi))
+          exact-floor))
 
 ;; =============================================================================
 ;; API Functions
