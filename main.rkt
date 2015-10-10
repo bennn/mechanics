@@ -70,8 +70,7 @@
  (only-in racket/math pi)
  (for-syntax
   racket/base
-  syntax/parse
-  (only-in unstable/sequence in-syntax)))
+  syntax/parse))
 
 ;; =============================================================================
 
