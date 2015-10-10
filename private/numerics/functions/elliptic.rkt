@@ -13,15 +13,10 @@
  (contract-out
   ;; Carlson elliptic integrals R_F
   [Rf three-nonnegative-reals->number]
-  [Carlson-elliptic₁ three-nonnegative-reals->number]
-  [Carlson-elliptic-1 three-nonnegative-reals->number]
   [Carlson-elliptic₁-simple three-nonnegative-reals->number]
-  [Carlson-elliptic-1-simple three-nonnegative-reals->number]
 
   ;; R_D
   [Rd three-nonnegative-reals->number]
-  [Carlson-elliptic₂ three-nonnegative-reals->number]
-  [Carlson-elliptic-2 three-nonnegative-reals->number]
 
   ;; Elliptic integrals of the first kind: F(φ,k)
 
@@ -61,7 +56,14 @@
   [Jacobi-elliptic-functions (-> number?
                                  (and/c real? positive? (</c 1))
                                  (-> number? number? number? any)
-                                 any)]))
+                                 any)])
+
+ (rename-out
+  [Rf Carlson-elliptic₁]
+  [Rf Carlson-elliptic-1]
+  [Carlson-elliptic₁-simple Carlson-elliptic-1-simple]
+  [Rd Carlson-elliptic₂]
+  [Rd Carlson-elliptic-2]))
 
 (define nonnegative-real? (not/c (and/c real? negative?)))
 
