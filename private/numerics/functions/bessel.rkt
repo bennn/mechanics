@@ -23,19 +23,13 @@
           2/π))
 
 (require
- (only-in racket/fixnum
-          fx+
-          fx=
-          fx<
-          fx-))
-(require
  (only-in math/number-theory factorial))
 
 ;; Utilities for special functions
 
 (define (round-to-even x)
   (let ([xn (inexact->exact (round x))])
-    (if (odd? xn) (fx+ xn 1) xn)))
+    (if (odd? xn) (+ xn 1) xn)))
 
 ;; computes ∑ cᵢ xⁱ
 (define (poly-by-coeffs->value x . coeffs)
@@ -233,13 +227,13 @@
   (define bigno 1.0e10)
   (define bigni 1.0e-10)
   (cond
-    [(fx= n 0) (bessj₀ x)]
-    [(fx= n 1) (bessj₁ x)]
+    [(= n 0) (bessj₀ x)]
+    [(= n 1) (bessj₁ x)]
     [(= x 0.0) 0.0]
     [(< x 0.0) (if (even? n)
                    (bessj n (- x))
                    (- (bessj n (- x))))]
-    [(fx< n 0) (if (even? n)
+    [(< n 0) (if (even? n)
                    (bessj (- n) x)
                    (- (bessj (- n) x)))]
     [else
@@ -258,7 +252,7 @@
                (ans 0.0)
                (sum 0.0))
            (let lp ((j m))
-             (if (fx= j 0)
+             (if (= j 0)
                  (let ((ans (/ ans (- (* 2.0 sum) bj))))
                    (if (and (< x 0.0) (odd? n)) (- ans) ans))
                  (let ((bjm (- (* j 2/ax bj) bjp)))
@@ -271,9 +265,9 @@
                             (set! sum (* sum bigni))))
                    (when (odd? j)
                      (set! sum (+ sum bj)))
-                   (when (fx= j n)
+                   (when (= j n)
                      (set! ans bjp))
-                   (lp (fx- j 1)))))))]))
+                   (lp (- j 1)))))))]))
 
 ;; NOTE: below was the attempted refactor of the above. For some reason
 ;; this didn't work.
@@ -425,17 +419,17 @@
 
 (define (bessy n x)
   (cond
-    [(fx= n 0) (bessy₀ x)]
-    [(fx= n 1) (bessy₁ x)]
-    [(fx< n 0)
+    [(= n 0) (bessy₀ x)]
+    [(= n 1) (bessy₁ x)]
+    [(< n 0)
      (if (even? n)
          (bessy (- n) x)
          (- (bessy (- n) x)))]
     [else
      (let lp ((i 1) (yn (bessy₁ x)) (yn-1 (bessy₀ x)))
-       (if (fx= i n)
+       (if (= i n)
            yn
-           (lp (fx+ i 1)
+           (lp (+ i 1)
                (- (/ (* 2 i yn) x) yn-1)
                yn)))]))
 
@@ -457,12 +451,17 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (module+ test
-  (require rackunit
-           rackunit/text-ui)
+  (require
+   (only-in mechanics 2π)
+   (only-in racket/math exact-round)
+   (only-in rackunit test-suite test-case check-=)
+   (only-in rackunit/text-ui run-tests))
 
   ;; Asymptotic formulae, for testing
   (define (bessj:0<x<<n n x)
-    (/ (expt (/ x 2) n) (factorial n)))
+    ;; HACK: sometimes n gets converted to a floating version of the
+    ;; integer such as 1000.0
+    (/ (expt (/ x 2) n) (factorial (exact-round n))))
 
   (define (bessj:n<<x n x)
     (* (sqrt (/ 2 π x))
@@ -475,19 +474,46 @@
   ;; Consistency check based on Wronskian:
 
   ;; J_{n+1}(x) Y_n(x) - J_n(x) Y_{n+1}(x) = 2/(pi x)
-
-  (define (bessel-check n x)
-    (/ (- (* (bessj (+ n 1) x) (bessy n x))
-          (* (bessj n x) (bessy (+ n 1) x))
-          (/ 2 (* π x)))
-       (/ 2 (* π x))))
+  (define (bessel-wronskian n x)
+    (- (* (bessj (add1 n) x) (bessy n x))
+            (* (bessj n x) (bessy (add1 n) x))))
 
   (run-tests
    (test-suite
     "Test suite for Bessel functions."
-    (test-suite
-     "Consistent with scmutils"
-     #;(test-= "TODO: scm utils checks" 0 1 0))
-    (test-suite
-     "Consistent with Wolfram Alpha"
-     #;(test-= "TODO: add wolfram alpha checks" 0 1 0)))))
+    (test-case "Wronskian Check"
+      (for* ([n (in-range -100 100)]
+             ;; Beware the singularity of Y at 0
+             [x (in-range .1 2π)])
+         (check-= (bessel-wronskian n x)
+                  (/ 2 (* π x))
+                  1e-9
+                  (format
+                   "Wronskian check failure with n = ~a and x = ~a" n x))))
+    
+    (test-case "Bessel J Small x large n asymptotic"
+      (for* ([n (in-range 1000 10000 100)]
+             [x (in-range .0001 .001 .0001)])
+        (check-= (bessj n x)
+                 (bessj:0<x<<n n x)
+                 1e-9
+                 (format
+                  "Asymptotic formula failed for 0 < x = ~a << n = ~a" n x))))
+
+    (test-case "Bessel J Small n large n asymptotic"
+      (for* ([n (in-range 1 10)]
+             [x (in-range 1e3 1e4 100)])
+        (check-= (bessj n x)
+                 (bessj:n<<x n x)
+                 1e-3
+                 (format
+                  "Asymptotic formula failed for 0 < x = ~a << n = ~a" n x))))
+    
+    (test-case "Bessel H Small n large x"
+      (for* ([n (in-range 1 10)]
+             [x (in-range 1e3 1e4 100)])
+        (check-= (bessh n x)
+                 (bessh:n<<x n x)
+                 1e-2
+                 (format
+                  "Asymptotic formula failed for 0 < x = ~a << n = ~a" n x)))))))
