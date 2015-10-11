@@ -8,6 +8,15 @@
 ;;
 ;; Collection of general generic functions that are used for the core
 ;; data types
+;;
+;; TODO:
+;; - figure out where to put trace and determinant
+;; - gcd
+;; - dot product
+;; - apply for numbers
+;; - decide what to do with atan1/atan2 (currently just export atan)
+;; - how much of the property system can be abstracted?
+;; - fix make-numsymb-expression
 
 (require
  mechanics/private/kernel/types
@@ -51,6 +60,8 @@
            sqr
            sinh 
            cosh)))
+
+(provide (all-defined-out))
 
 ;; Default implementations for generic typed objects
 (define-generics typed-object
@@ -173,6 +184,13 @@
     (define make-rectangular base:make-rectangular)
     (define make-polar base:make-polar)]))
 
-;; TODO: figure out where to put trace and determinant
-;; TODO: gcd
-;; TODO: dot product
+(define (make-numsymb-expression operator)
+  ;; TODO
+  (λ args #f))
+
+(define (make-numerical-combination operator [reverse? #f])
+  (if reverse?
+      (λ operands
+        (make-numsymb-expression operator (reverse operands)))
+      (λ operands
+        (make-numsymb-expression operator operands))))
