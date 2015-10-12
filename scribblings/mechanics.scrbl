@@ -14,3 +14,4 @@ and Interpretation of Classical Mechanics} by Sussman and Wisdom.
 @local-table-of-contents[]
 
 @include-section["numerics/functions.scrbl"]
+@include-section["numerics/integer.scrbl"]

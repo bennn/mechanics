@@ -17,8 +17,16 @@
   ;; (provide/api
   ;;   ID #:contract CONTRACT #:doc DOCSTRING ...)
 
+  ;; --- Contracts
+
   (all-from-out racket/contract/base)
   ;; Re-export, for `provide/api` to work.
+
+  (rename-out
+    [natural-number/c natural?]
+  )
+  exact-rational?
+  sequenceof
 
   ;; --- FUNCTIONS
   exp2 exp10
@@ -37,6 +45,7 @@
 
   ;; --- CONSTANTS
   (contract-out
+   [pi flonum?]
    [π flonum?]
    [2π flonum?]
    [π/2 flonum?]
@@ -48,20 +57,20 @@
    [3π/2 flonum?]
    [3π/4 flonum?])
 
- 
   *machine-ε*
-  (rename-out [*machine-ε* *machine-epsilon*])
+  (rename-out
+    [*machine-ε* *machine-epsilon*]
+  )
 )
 
 ;; -----------------------------------------------------------------------------
 
 (require
  racket/contract/base
+ (only-in racket/math pi)
  (for-syntax
   racket/base
   syntax/parse))
-
-(require (only-in racket/math pi))
 
 ;; =============================================================================
 
@@ -78,6 +87,11 @@
               ;; Skip the contract if given `#:contract #f ctr`
               (if (syntax-e enabled?) #`(contract-out [#,pr #,ctr]) #`#,pr)))]
     [_ (error (format "provide/api: syntax error, expected '(provide/api (ID #:contract CONTRACT #:doc DOCSTRING) ...)' but given '~a'" (syntax->datum stx)))]))
+
+;; =============================================================================
+
+(define exact-rational? (and/c exact? rational?))
+(define (sequenceof ctc) sequence?)
 
 ;; =============================================================================
 
@@ -146,4 +160,3 @@
   (check-equal? (Pi (lambda (x) x) 2 1) 1)
   (check-equal? (Pi (lambda (x) 4) 0 4) (expt 4 5))
 )
-
