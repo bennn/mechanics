@@ -1,9 +1,5 @@
 #lang info
 
-;; 2015-04-28:
-;; Not sure exactly what we need here, but these settings
-;; seem like a good guess
-
 (define collection "mechanics")
 (define deps '("base"))
 (define build-deps
@@ -16,4 +12,10 @@
 (define pkg-desc "Library for SICM")
 (define pkg-authors '(ben ben))
 (define version "0.0")
+(define raco-commands '(
+  ("mechanics"
+   (submod mechanics main)
+   "open a REPL with the mechanics library"
+   #f)
+))
 (define scribblings '(("scribblings/mechanics.scrbl" (multi-page))))
