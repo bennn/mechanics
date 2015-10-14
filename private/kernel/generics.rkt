@@ -102,6 +102,7 @@
     (define zero? base:zero?)
 
     (define (one? obj) (= obj 1))
+    
     (define identity? one?)]))
 
 (define-generics numeric
@@ -122,9 +123,10 @@
   #:defaults
   ([number?
     (define (negate x) (- x))
+    
     (define (atan x [y #f])
       (if y (base:atan x y) (base:atan y)))
-
+    
     (define (invert x) (/ 1 x))
     
     (define square base:sqr)
@@ -144,6 +146,7 @@
   #:defaults
   ([number?
     (define/generic super-= =)
+    
     (define = base:=)
 
     (define (/= x y . zs) (not (apply = (list* x y zs))))]))
