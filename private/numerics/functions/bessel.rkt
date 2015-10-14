@@ -12,14 +12,7 @@
   [bessy  (-> integer? positive? number?)]
   [bessh₀ (-> number? complex?)]
   [bessh₁ (-> number? complex?)]
-  [bessh  (-> integer? number? complex?)])
- (rename-out
-  [bessj₀ bessj0]
-  [bessj₁ bessj1]
-  [bessy₀ bessy0]
-  [bessy₁ bessy1]
-  [bessh₀ bessh0]
-  [bessh₁ bessh1]))
+  [bessh  (-> integer? number? complex?)]))
 
 (require
  (only-in mechanics
