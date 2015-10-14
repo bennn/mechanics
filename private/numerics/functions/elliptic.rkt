@@ -56,14 +56,7 @@
   [Jacobi-elliptic-functions (-> number?
                                  (and/c real? positive? (</c 1))
                                  (-> number? number? number? any)
-                                 any)])
-
- (rename-out
-  [Rf Carlson-elliptic₁]
-  [Rf Carlson-elliptic-1]
-  [Carlson-elliptic₁-simple Carlson-elliptic-1-simple]
-  [Rd Carlson-elliptic₂]
-  [Rd Carlson-elliptic-2]))
+                                 any)]))
 
 (define nonnegative-real? (not/c (and/c real? negative?)))
 
