@@ -1,6 +1,4 @@
-#lang racket/base
-
-(require racket/contract/base)
+#lang mechanics
 
 (provide
  (contract-out
@@ -20,8 +18,6 @@
           flsqrt
           fl*
           fl-))
-
-(require (only-in mechanics π π/2 *machine-ε*))
 
 (define (first-elliptic-integral k)
   (let loop ([a 1.0]

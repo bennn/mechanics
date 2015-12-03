@@ -1,4 +1,4 @@
-#lang racket/base
+#lang mechanics
 
 ;; Utilities for working with subsets of the real line.
 ;; Alternatively, for representing data points that have a tolerance.
@@ -11,7 +11,6 @@
 ;;   (arranged from lowest lo bound upward, all intervals disjoint)
 
 (require
-  mechanics
   (for-syntax racket/base syntax/parse)
   (only-in racket/match match-define)
 )

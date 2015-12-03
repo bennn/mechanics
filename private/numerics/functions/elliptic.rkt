@@ -1,4 +1,4 @@
-#lang racket/base
+#lang mechanics
 
 ;; Consult "Numerical Computation of Real or Complex Elliptic
 ;; Integrals" Carlson (1994) http://arxiv.org/pdf/math/9409227v1.pdf
@@ -8,7 +8,6 @@
 ;;
 ;; Consider also exporting under the more familiar names Rf, Rj, Rc,
 ;; Rd. Is there any input method that gets those names as subscripts.
-(require racket/contract/base)
 (provide
  (contract-out
   ;; Carlson elliptic integrals R_F
@@ -72,12 +71,7 @@
       number?))
 
 (require
- (only-in mechanics π π/2 square *machine-ε*))
-
-(require
- (only-in racket/math cosh tanh))
-
-(require
+ (only-in racket/math cosh tanh)
  (only-in racket/fixnum fx< fx+))
 
 (define (Rf x y z)
@@ -307,8 +301,7 @@
 
 (module+ test
   (require rackunit
-           rackunit/text-ui
-           (only-in mechanics π/2))
+           rackunit/text-ui)
 
   (define test-suite-ε 1e-7)
   (run-tests

@@ -1,7 +1,6 @@
-#lang racket/base
+#lang mechanics
 
 ;; This module defines the bessel functions of integer order
-(require racket/contract/base)
 (provide
  (contract-out
   [bessj₀ (-> number? number?)]
@@ -13,14 +12,6 @@
   [bessh₀ (-> number? complex?)]
   [bessh₁ (-> number? complex?)]
   [bessh  (-> integer? number? complex?)]))
-
-(require
- (only-in mechanics
-          π
-          π/4
-          π/2
-          3π/4
-          2/π))
 
 (require
  (only-in math/number-theory factorial))

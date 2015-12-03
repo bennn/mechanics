@@ -1,4 +1,4 @@
-#lang racket/base
+#lang mechanics
 
 ;; Vector functions missing from racket & racket/math
 

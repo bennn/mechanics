@@ -1,4 +1,4 @@
-#lang racket/base
+#lang mechanics
 
 ;;;; Bessel Functions:
 
@@ -10,7 +10,6 @@
 ;;;    ( J0(x) ... Jn(x) ) 
 ;;;   that is good to machine precision for x < 2 and large n.
 
-(require racket/contract/base)
 (provide
  (contract-out
   [bessjs (-> exact-nonnegative-integer? positive? (listof number?))]))
@@ -67,7 +66,6 @@
 (module+ test
   (require rackunit
            rackunit/text-ui
-           (only-in mechanics π/2 π 3π/2 2π)
            math/matrix
            (only-in racket/vector vector-map)
            (only-in racket/format ~a)

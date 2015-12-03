@@ -1,4 +1,4 @@
-#lang racket/base
+#lang mechanics
 
 ;; Farey Trees (aka Stern-Brocot Trees)
 ;; http://mathworld.wolfram.com/FareySequence.html
@@ -10,7 +10,6 @@
 ;; Because the mediants are always between the given fractions
 ;; the levels are ordered if the first one is ordered.
 
-(require mechanics)
 (provide/api
   farey
   #:contract (-> natural? natural? (-> natural? (listof exact-rational?)))
