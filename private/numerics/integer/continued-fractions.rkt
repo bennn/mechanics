@@ -1,9 +1,8 @@
-#lang racket/base
+#lang mechanics
 
 ;; Continued Fractions stream approximations of real numbers.
 ;; http://en.wikipedia.org/wiki/Continued_fraction
 
-(require mechanics)
 (provide/api
  continued-fraction
  #:contract (-> real? (sequenceof integer?))
