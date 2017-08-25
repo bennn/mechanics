@@ -12,15 +12,11 @@
  (contract-out
   ;; Carlson elliptic integrals R_F
   [Rf three-nonnegative-reals->number]
-  [Carlson-elliptic₁ three-nonnegative-reals->number]
-  [Carlson-elliptic-1 three-nonnegative-reals->number]
   [Carlson-elliptic₁-simple three-nonnegative-reals->number]
-  [Carlson-elliptic-1-simple three-nonnegative-reals->number]
 
   ;; R_D
   [Rd three-nonnegative-reals->number]
   [Carlson-elliptic₂ three-nonnegative-reals->number]
-  [Carlson-elliptic-2 three-nonnegative-reals->number]
 
   ;; Elliptic integrals of the first kind: F(φ,k)
 
