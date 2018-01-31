@@ -1,7 +1,7 @@
 #lang info
 
 (define collection "mechanics")
-(define deps '("base"))
+(define deps '("base" "math-lib" "xrepl-lib"))
 (define build-deps
   '("cover"
     "cover-coveralls"
